@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { DashboardProvider } from './context/DashboardContext';
 import { VoiceContext } from './context/VoiceContext';
 import { useVoiceAlerts } from './hooks/useVoiceAlerts';
@@ -9,6 +9,7 @@ import LightCurveChart from './components/LightCurveChart';
 import StatCards from './components/StatCards';
 import LogPanels from './components/LogPanels';
 import SpaceBackground from './components/SpaceBackground';
+import Preloader from './components/Preloader';
 
 function DashboardWithVoice() {
   const [muted, setMuted] = useState(false);
@@ -42,9 +43,18 @@ function DashboardWithVoice() {
 }
 
 export default function App() {
+  const [ready, setReady] = useState(false);
+  const handleDone = useCallback(() => setReady(true), []);
+
   return (
-    <DashboardProvider>
-      <DashboardWithVoice />
-    </DashboardProvider>
+    <>
+      {!ready && <Preloader onDone={handleDone} />}
+      {ready && (
+        <DashboardProvider>
+          <DashboardWithVoice />
+        </DashboardProvider>
+      )}
+    </>
   );
 }
+
