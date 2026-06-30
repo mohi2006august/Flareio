@@ -109,33 +109,35 @@ function dashboardReducer(state, action) {
       const { nowcast, forecast, history } = state;
       const isExtreme = action.payload.forceXClass;
       
-      const newNowProb = isExtreme ? clamp(gaussian(95, 3), 90, 100) : clamp(nowcast.probability + gaussian(0, 3), 5, 98);
-      const newForeProb = isExtreme ? clamp(gaussian(98, 2), 90, 100) : clamp(forecast.probability + gaussian(0, 5), 5, 99);
+      const newNowProb = isExtreme ? clamp(gaussian(99, 1), 98, 100) : clamp(nowcast.probability + gaussian(0, 3), 5, 98);
+      const newForeProb = isExtreme ? clamp(gaussian(99, 1), 98, 100) : clamp(forecast.probability + gaussian(0, 5), 5, 99);
       
       const newAlertLevel = getAlertLevel(newNowProb);
       
       // Update Alert Active Time
       let newAlertActiveSince = state.alertActiveSince;
       let newAlertAcked = state.alertAcked;
-      if (newAlertLevel !== state.alertLevel) {
+      if (newAlertLevel !== state.alertLevel || isExtreme) {
         newAlertActiveSince = Date.now();
-        newAlertAcked = false; // Reset ack on level change
+        newAlertAcked = false; // Reset ack on level change or extreme event
       }
 
       // OOD Score Logic
       let oodScore = clamp(gaussian(0.2, 0.1), 0.0, 0.4);
-      if (Math.random() < 0.05 || isExtreme) oodScore = clamp(gaussian(0.85, 0.1), 0.7, 0.99);
+      if (Math.random() < 0.05 || isExtreme) oodScore = isExtreme ? clamp(gaussian(0.92, 0.02), 0.85, 0.99) : clamp(gaussian(0.85, 0.1), 0.7, 0.99);
 
       // Compound Event Logic
       let compoundEvents = [];
-      if (newNowProb > 60 && Math.random() < 0.2) {
+      if (isExtreme || (newNowProb > 60 && Math.random() < 0.2)) {
         compoundEvents = [
           { class: getFlareClass(newNowProb), prob: newNowProb, uncert: 4.2 },
           { class: getFlareClass(newNowProb - 20), prob: newNowProb - 20, uncert: 8.5 }
         ];
       }
 
-      const fluxS = generateFluxSoLEXS(newNowProb);
+      // Boost flux massively for X-Class simulation to ensure it crosses the 1e-4 visual threshold line
+      let fluxS = generateFluxSoLEXS(newNowProb);
+      if (isExtreme) fluxS = clamp(fluxS * 5, 2e-4, 5e-3);
       const fluxH = generateFluxHEL1OS(fluxS);
 
       const newHistory = [...history, {
@@ -145,17 +147,20 @@ function dashboardReducer(state, action) {
         isPrediction: false
       }].slice(-300); // Keep last 300 points
 
-      // Check if we need to log a new event (e.g. crossing RED threshold)
+      // Check if we need to log a new event (e.g. crossing RED threshold, or explicit extreme simulation)
       const newEventLog = [...state.eventLog];
-      if (newAlertLevel === 'RED' && state.alertLevel !== 'RED') {
-        newEventLog.unshift({
-          id: Date.now(),
-          time: new Date().toISOString(),
-          class: getFlareClass(newNowProb),
-          prob: Math.round(newNowProb),
-          lead: Math.floor(Math.random() * 120 + 10),
-          type: 'DETECTED'
-        });
+      if ((newAlertLevel === 'RED' && state.alertLevel !== 'RED') || isExtreme) {
+        // Prevent duplicate immediate logs if we just logged an extreme event
+        if (!newEventLog[0] || (Date.now() - newEventLog[0].id) > 2000) {
+          newEventLog.unshift({
+            id: Date.now(),
+            time: new Date().toISOString(),
+            class: getFlareClass(newNowProb),
+            prob: Math.round(newNowProb),
+            lead: Math.floor(Math.random() * 120 + 10),
+            type: 'DETECTED'
+          });
+        }
       }
 
       return {
