@@ -361,8 +361,72 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+.alert-banner__dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--alert-color);
+  box-shadow: 0 0 10px var(--alert-color);
+  animation: livePulse 1.5s ease-in-out infinite;
+}
+.alert-banner__label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
 
+.alert-banner__level {
+  font-family: 'Orbitron', monospace;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  flex-shrink: 0;
+}
 
+.alert-banner__prob-wrap {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.alert-banner__prob-track {
+  flex-grow: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.alert-banner__prob-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1s ease-out;
+}
+.alert-banner__prob-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--text-main);
+  min-width: 50px;
+  text-align: right;
+}
+
+.alert-banner__flare {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+.alert-banner__flare-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+.alert-banner__flare-val {
+  font-family: 'Orbitron', monospace;
+  font-size: 18px;
+  font-weight: 700;
+}
 /* ─── Chart Card ─────────────────────────────────────────────────────────────── */
 .chart-card {
   background: var(--card-bg);
