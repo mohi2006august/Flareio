@@ -16,8 +16,11 @@ export function useVoiceAlerts(muted) {
   const queueRef = useRef([]);
   const speakingRef = useRef(false);
 
+  const mutedRef = useRef(muted);
+  mutedRef.current = muted;
+
   const processQueue = useCallback(() => {
-    if (speakingRef.current || queueRef.current.length === 0 || muted) return;
+    if (speakingRef.current || queueRef.current.length === 0 || mutedRef.current) return;
     const text = queueRef.current.shift();
     const utter = new SpeechSynthesisUtterance(text);
     utter.rate = 0.95;
@@ -37,13 +40,13 @@ export function useVoiceAlerts(muted) {
       processQueue();
     };
     window.speechSynthesis.speak(utter);
-  }, [muted]);
+  }, []);
 
   const speak = useCallback((text) => {
-    if (!SUPPORTED || muted) return;
+    if (!SUPPORTED || mutedRef.current) return;
     queueRef.current.push(text);
     processQueue();
-  }, [muted, processQueue]);
+  }, [processQueue]);
 
   useEffect(() => {
     const prev = prevLevelRef.current;
