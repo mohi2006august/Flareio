@@ -318,35 +318,7 @@ export default function Preloader({ onDone }) {
 
 
       <div className="preloader__ui">
-        {/* Logo */}
-        <div className="preloader__logo-group">
-          <div className="preloader__logo-ring" />
-          <div className="preloader__logo-ring preloader__logo-ring--2" />
-          <div className="preloader__logo-core">
-            <svg width="48" height="48" viewBox="0 0 36 36">
-              <defs>
-                <radialGradient id="plSunGrad" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#fff9d6" />
-                  <stop offset="50%" stopColor="#f4a623" />
-                  <stop offset="100%" stopColor="#e8721c" />
-                </radialGradient>
-              </defs>
-              <circle cx="18" cy="18" r="10" fill="url(#plSunGrad)" />
-              {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => {
-                const rad = (angle * Math.PI) / 180;
-                return (
-                  <line
-                    key={i}
-                    x1={18 + 13 * Math.cos(rad)} y1={18 + 13 * Math.sin(rad)}
-                    x2={18 + 17 * Math.cos(rad)} y2={18 + 17 * Math.sin(rad)}
-                    stroke="#f4a623" strokeWidth="2" strokeLinecap="round"
-                  />
-                );
-              })}
-              <path d="M 26 10 Q 30 5 34 8 Q 30 12 26 14 Z" fill="#ef4444" opacity="0.9" />
-            </svg>
-          </div>
-        </div>
+
 
         {/* Title */}
         <div className="preloader__title">PBCAT-M</div>
