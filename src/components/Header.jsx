@@ -1,11 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDashboard } from '../context/DashboardContext';
-import { Zap } from 'lucide-react';
+import { Zap, Radio, Shield, Satellite } from 'lucide-react';
 import VoiceBar from './VoiceBar';
 
 export default function Header() {
   const { simulateXClass } = useDashboard();
   const [simulating, setSimulating] = useState(false);
+  const [utcTime, setUtcTime] = useState('');
+
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      setUtcTime(
+        now.toISOString().replace('T', '  ').slice(0, 21) + ' UTC'
+      );
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
 
   const handleSimulate = () => {
     setSimulating(true);
@@ -14,58 +27,51 @@ export default function Header() {
   };
 
   return (
-    <header className="dashboard-header">
-      {/* Logo + Title */}
-      <div className="header-brand">
-        <div className="header-logo">
-          <svg width="36" height="36" viewBox="0 0 36 36">
-            <defs>
-              <radialGradient id="sunGrad" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#fff7b0" />
-                <stop offset="50%" stopColor="#f4a623" />
-                <stop offset="100%" stopColor="#e8721c" />
-              </radialGradient>
-            </defs>
-            <circle cx="18" cy="18" r="10" fill="url(#sunGrad)" />
-            {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => {
-              const rad = (angle * Math.PI) / 180;
-              const x1 = 18 + 13 * Math.cos(rad);
-              const y1 = 18 + 13 * Math.sin(rad);
-              const x2 = 18 + 17 * Math.cos(rad);
-              const y2 = 18 + 17 * Math.sin(rad);
-              return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#f4a623" strokeWidth="2" strokeLinecap="round" />;
-            })}
-            {/* Flare arc */}
-            <path d="M 26 10 Q 30 5 34 8 Q 30 12 26 14 Z" fill="#ef4444" opacity="0.9" />
-          </svg>
+    <header className="nav-header">
+      {/* Ambient glow line at the very top */}
+      <div className="nav-header__glow-line" />
+
+      {/* Left: Logo + Title */}
+      <div className="nav-header__brand">
+        <div className="nav-header__logo-wrap">
+          <div className="nav-header__logo-ring" />
+          <Satellite size={18} className="nav-header__logo-icon" />
         </div>
-        <div className="header-title-group">
-          <h1 className="header-title">PBCAT-M</h1>
-          <p className="header-subtitle">Solar Flare Forecasting System · ISRO / Space Weather Division</p>
+        <div className="nav-header__titles">
+          <h1 className="nav-header__title">
+            FLARE<span className="nav-header__title-accent">SENSE</span>
+          </h1>
+          <p className="nav-header__subtitle">
+            PBCAT-M · SoLEXS / HEL1OS · Aditya-L1
+          </p>
         </div>
       </div>
 
-      {/* Center status */}
-      <div className="header-status">
-        <div className="live-indicator">
-          <span className="live-dot" />
-          LIVE
+      {/* Center: Live Badge + Clock */}
+      <div className="nav-header__center">
+        <div className="nav-header__live-badge">
+          <span className="nav-header__live-dot" />
+          <span className="nav-header__live-text">LIVE</span>
         </div>
-        <span className="header-time">
-          {new Date().toUTCString().replace(' GMT', ' UTC')}
-        </span>
+        <div className="nav-header__divider" />
+        <div className="nav-header__mission-tag">
+          <Shield size={12} />
+          <span>ISRO Space Weather</span>
+        </div>
+        <div className="nav-header__divider" />
+        <time className="nav-header__clock">{utcTime}</time>
       </div>
 
-      {/* Right controls */}
-      <div className="header-controls">
+      {/* Right: Controls */}
+      <div className="nav-header__controls">
         <VoiceBar />
         <button
-          className={`simulate-btn ${simulating ? 'simulate-btn--active' : ''}`}
+          className={`nav-header__sim-btn ${simulating ? 'nav-header__sim-btn--active' : ''}`}
           onClick={handleSimulate}
           disabled={simulating}
         >
-          <Zap size={15} />
-          {simulating ? 'Simulating…' : 'Simulate X-Class Flare'}
+          <Zap size={14} />
+          <span>{simulating ? 'Simulating…' : 'X-Class Flare'}</span>
         </button>
       </div>
     </header>
