@@ -315,60 +315,7 @@ export default function Preloader({ onDone }) {
     <div className={`preloader ${exiting ? 'preloader--exit' : ''}`}>
       <canvas ref={canvasRef} className="preloader__canvas" />
 
-      {/* Cyberpunk HUD Grid Overlay */}
-      <div className="preloader__hud-borders">
-        <div className="hud-corner top-left"></div>
-        <div className="hud-corner top-right"></div>
-        <div className="hud-corner bottom-left"></div>
-        <div className="hud-corner bottom-right"></div>
-      </div>
 
-      {/* Telemetry Stream Left */}
-      <div className="preloader__side-hud left">
-        <div className="hud-label">TELEMETRY_LOG</div>
-        <div className="hud-stream">
-          {telemetry.map((tLine, i) => (
-            <div key={i} className="hud-stream-line">{tLine}</div>
-          ))}
-        </div>
-      </div>
-
-      {/* Sensor Calibration Status Right */}
-      <div className="preloader__side-hud right">
-        <div className="hud-label">INSTRUMENT_STATUS</div>
-        <div className="hud-status-grid">
-          <div className="hud-status-item">
-            <span>SOLEXS_X_RAY</span>
-            <span className={stepIdx >= 3 ? "active" : "standby"}>
-              {stepIdx >= 3 ? "ACTIVE" : "STANDBY"}
-            </span>
-          </div>
-          <div className="hud-status-item">
-            <span>HEL1OS_CALIB</span>
-            <span className={stepIdx >= 4 ? "active" : "standby"}>
-              {stepIdx >= 4 ? "NOMINAL" : "CALIB"}
-            </span>
-          </div>
-          <div className="hud-status-item">
-            <span>L1_ORBIT_LOCK</span>
-            <span className={stepIdx >= 2 ? "active" : "standby"}>
-              {stepIdx >= 2 ? "LOCKED" : "SEARCH"}
-            </span>
-          </div>
-          <div className="hud-status-item">
-            <span>ANALYTICS_AI</span>
-            <span className={stepIdx >= 6 ? "active" : "standby"}>
-              {stepIdx >= 6 ? "ONLINE" : "OFFLINE"}
-            </span>
-          </div>
-        </div>
-
-        {/* Dynamic Scan Line visual info */}
-        <div className="hud-visual-scap">
-          <div className="scap-bar" style={{ height: `${progress * 0.6}px` }} />
-          <div className="scap-text">ADITYA_L1 // HALO_Z</div>
-        </div>
-      </div>
 
       <div className="preloader__ui">
         {/* Logo */}
@@ -407,20 +354,7 @@ export default function Preloader({ onDone }) {
           Solar Flare Forecasting System · ISRO / Space Weather Division
         </div>
 
-        {/* Audio Mute toggle on Preloader */}
-        <button 
-          className="preloader__sound-toggle"
-          onClick={() => setSoundEnabled(!soundEnabled)}
-          title="Toggle audio telemetry"
-        >
-          {soundEnabled ? "🔊 AUDIO ONLINE" : "🔇 AUDIO MUTED"}
-        </button>
 
-        {/* Scanning line animation */}
-        <div className="preloader__scan-box">
-          <div className="preloader__scan-line" />
-          <div className="preloader__scan-grid" />
-        </div>
 
         {/* Progress bar */}
         <div className="preloader__bar-wrap">
