@@ -195,16 +195,16 @@ function RealisticSun({ alertLevel }) {
   });
 
   return (
-    <group position={[0, -5, -45]}>
+    <group position={[0, -8, -45]}>
       {/* Sun Body */}
       <mesh>
-        <sphereGeometry args={[14, 128, 128]} />
+        <sphereGeometry args={[22, 128, 128]} />
         <sunMaterial ref={sunRef} />
       </mesh>
 
       {/* Atmospheric Corona */}
       <mesh>
-        <sphereGeometry args={[17.5, 64, 64]} />
+        <sphereGeometry args={[27, 64, 64]} />
         <coronaMaterial ref={coronaRef} transparent blending={THREE.AdditiveBlending} depthWrite={false} />
       </mesh>
     </group>
@@ -225,8 +225,8 @@ function SolarProminences({ active }) {
     const loops = Array.from({ length: numLoops }, () => ({
       angle: Math.random() * Math.PI * 2,
       tilt: (Math.random() - 0.5) * Math.PI * 0.5,
-      radius: 14.0 + Math.random() * 5.0,
-      height: 4.0 + Math.random() * 12.0,
+      radius: 22.0 + Math.random() * 7.0,
+      height: 5.0 + Math.random() * 16.0,
       speed: 0.005 + Math.random() * 0.015
     }));
 
@@ -250,7 +250,7 @@ function SolarProminences({ active }) {
       }
 
       // Base circle parametric
-      const distance = 14.0; // Surface of massive sun
+      const distance = 22.0; // Surface of massive sun
       const r = p.radius * Math.sin(p.theta);
       const h = p.height * Math.sin(p.theta);
 
@@ -269,9 +269,9 @@ function SolarProminences({ active }) {
       const gx = lx * Math.cos(p.angle) - lz * Math.sin(p.angle);
       const gz = lx * Math.sin(p.angle) + lz * Math.cos(p.angle);
 
-      // Add to sun position (0, -5, -45)
+      // Add to sun position (0, -8, -45)
       positions[i * 3]     = 0 + gx;
-      positions[i * 3 + 1] = -5 + ly;
+      positions[i * 3 + 1] = -8 + ly;
       positions[i * 3 + 2] = -45 + gz;
     }
     ref.current.geometry.attributes.position.needsUpdate = true;
