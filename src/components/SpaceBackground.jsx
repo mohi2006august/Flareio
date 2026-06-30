@@ -195,16 +195,16 @@ function RealisticSun({ alertLevel }) {
   });
 
   return (
-    <group position={[8, 4, -25]}>
+    <group position={[0, -2, -25]}>
       {/* Sun Body */}
       <mesh>
-        <sphereGeometry args={[2.5, 64, 64]} />
+        <sphereGeometry args={[5, 128, 128]} />
         <sunMaterial ref={sunRef} />
       </mesh>
 
       {/* Atmospheric Corona */}
       <mesh>
-        <sphereGeometry args={[3.2, 64, 64]} />
+        <sphereGeometry args={[6.5, 64, 64]} />
         <coronaMaterial ref={coronaRef} transparent blending={THREE.AdditiveBlending} depthWrite={false} />
       </mesh>
     </group>
@@ -221,12 +221,12 @@ function SolarProminences({ active }) {
     const params = []; // Store theta, loopRadius, loopHeight, angle, speed
     
     // Create ~15 distinct magnetic loops
-    const numLoops = 15;
+    const numLoops = 20;
     const loops = Array.from({ length: numLoops }, () => ({
       angle: Math.random() * Math.PI * 2,
       tilt: (Math.random() - 0.5) * Math.PI * 0.5,
-      radius: 2.5 + Math.random() * 1.5,
-      height: 1.0 + Math.random() * 4.0,
+      radius: 5.0 + Math.random() * 2.0,
+      height: 2.0 + Math.random() * 6.0,
       speed: 0.005 + Math.random() * 0.015
     }));
 
@@ -250,7 +250,7 @@ function SolarProminences({ active }) {
       }
 
       // Base circle parametric
-      const distance = 2.5; // Surface of sun
+      const distance = 5.0; // Surface of sun
       const r = p.radius * Math.sin(p.theta);
       const h = p.height * Math.sin(p.theta);
 
@@ -269,9 +269,9 @@ function SolarProminences({ active }) {
       const gx = lx * Math.cos(p.angle) - lz * Math.sin(p.angle);
       const gz = lx * Math.sin(p.angle) + lz * Math.cos(p.angle);
 
-      // Add to sun position (8, 4, -25)
-      positions[i * 3]     = 8 + gx;
-      positions[i * 3 + 1] = 4 + ly;
+      // Add to sun position (0, -2, -25)
+      positions[i * 3]     = 0 + gx;
+      positions[i * 3 + 1] = -2 + ly;
       positions[i * 3 + 2] = -25 + gz;
     }
     ref.current.geometry.attributes.position.needsUpdate = true;
@@ -325,11 +325,11 @@ function Scene({ alertLevel, xClassActive }) {
   return (
     <>
       <ParallaxCamera />
-      <StarField count={4000} />
+      <StarField count={8000} />
       <RealisticSun alertLevel={alertLevel} />
       <SolarProminences active={xClassActive || alertLevel === 'RED'} />
       <ambientLight intensity={0.3} />
-      <pointLight position={[8, 4, -20]} intensity={2} color="#f4a623" />
+      <pointLight position={[0, 0, -20]} intensity={2} color="#f4a623" />
     </>
   );
 }

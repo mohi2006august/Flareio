@@ -37,13 +37,25 @@ function DashboardWithVoice({ phase }) {
       <div className={dashboardClass}>
         <Header />
         <main className="dashboard-main">
-          <div className="top-row">
+          {/* Top Section */}
+          <div className="dashboard-top-section" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <ProbabilityGauge />
+          </div>
+
+          {/* Spacer to expose the majestic 3D sun */}
+          <div style={{ flexGrow: 1, minHeight: '30vh' }} />
+
+          {/* Bottom Section */}
+          <div className="dashboard-bottom-section" style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '18px', alignItems: 'flex-end' }}>
+              <LightCurveChart />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                <StatCards />
+                <LogPanels />
+              </div>
+            </div>
             <AlertLevelCard />
           </div>
-          <LightCurveChart />
-          <StatCards />
-          <LogPanels />
         </main>
         <footer className="dashboard-footer">
           <span>PBCAT-M v2.1.0 · SoLEXS &amp; HEL1OS Instruments · Aditya-L1 Mission</span>
