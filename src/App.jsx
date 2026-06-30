@@ -15,6 +15,17 @@ import WelcomeScreen from './components/WelcomeScreen';
 function DashboardWithVoice({ phase }) {
   const [muted, setMuted] = useState(false);
   const { supported: ttsSupported, speak } = useVoiceAlerts(muted);
+  const [hasWelcomed, setHasWelcomed] = useState(false);
+
+  useEffect(() => {
+    if (phase === 'DASHBOARD' && !hasWelcomed && ttsSupported && !muted) {
+      // Small delay to let the visual transition start
+      setTimeout(() => {
+        speak("Welcome to Flare Sense. All systems nominal. Space weather monitoring is active.");
+      }, 500);
+      setHasWelcomed(true);
+    }
+  }, [phase, hasWelcomed, ttsSupported, muted, speak]);
 
   // When phase is DASHBOARD, the active class triggers stagger animations
   const dashboardClass = `dashboard-root ${phase === 'DASHBOARD' ? 'dashboard-root--active' : 'dashboard-root--hidden'}`;
