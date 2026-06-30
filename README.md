@@ -66,7 +66,7 @@ Once the dashboard is loaded, click the **Ask** button (make sure to grant micro
 - *"What is the model confidence?"*
 - *"What is the current flux?"*
 
-*Note: For the voice assistant to work correctly, browser autoplay policies require an initial click on the "INITIALIZE SYSTEM" boot screen before the application loads.*
+
 
 ## 📄 License
 

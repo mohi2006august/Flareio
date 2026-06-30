@@ -57,31 +57,18 @@ function DashboardWithVoice({ phase }) {
 }
 
 export default function App() {
-  const [phase, setPhase] = useState('BOOT'); // BOOT, PRELOAD, DASHBOARD
+  const [phase, setPhase] = useState('PRELOAD'); // PRELOAD, DASHBOARD
 
-  const handleBoot = useCallback(() => setPhase('PRELOAD'), []);
   const handlePreloaderDone = useCallback(() => setPhase('DASHBOARD'), []);
 
   return (
     <>
-      {phase === 'BOOT' && (
-        <div className="boot-screen" onClick={handleBoot}>
-          <div className="boot-screen__btn">
-            <span className="boot-screen__icon">⏻</span>
-            INITIALIZE SYSTEM
-          </div>
-          <div className="boot-screen__hint">Click anywhere to begin boot sequence</div>
-        </div>
-      )}
-
       {phase === 'PRELOAD' && <Preloader onDone={handlePreloaderDone} />}
 
       {/* Mount Dashboard early to initialize SpaceBackground, but keep it visually hidden until DASHBOARD phase */}
-      {phase !== 'BOOT' && (
-        <DashboardProvider>
-          <DashboardWithVoice phase={phase} />
-        </DashboardProvider>
-      )}
+      <DashboardProvider>
+        <DashboardWithVoice phase={phase} />
+      </DashboardProvider>
     </>
   );
 }
