@@ -30,16 +30,37 @@ export function useVoiceAlerts(muted) {
     const voices = window.speechSynthesis.getVoices();
     const preferred = voices.find(v => v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('google us'));
     if (preferred) utter.voice = preferred;
-    speakingRef.current = true;
+    let fallbackTimeout;
+    
+    utter.onstart = () => {
+      clearTimeout(fallbackTimeout);
+    };
+    
     utter.onend = () => {
+      clearTimeout(fallbackTimeout);
       speakingRef.current = false;
       processQueue();
     };
+    
     utter.onerror = () => {
+      clearTimeout(fallbackTimeout);
       speakingRef.current = false;
       processQueue();
     };
+    
+    speakingRef.current = true;
     window.speechSynthesis.speak(utter);
+
+    // If the browser blocks audio due to autoplay policies, it might never fire onstart or onerror.
+    // This fallback unlocks the queue after 2 seconds so future clicks (like the Ask button) will work.
+    fallbackTimeout = setTimeout(() => {
+      if (speakingRef.current) {
+        speakingRef.current = false;
+        // Optionally clear the hung synthesis queue
+        window.speechSynthesis.cancel();
+        processQueue();
+      }
+    }, 2000);
   }, []);
 
   const speak = useCallback((text) => {
