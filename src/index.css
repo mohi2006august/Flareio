@@ -1311,3 +1311,122 @@ body {
   .preloader__side-hud { display: none !important; }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════════
+   WELCOME SCREEN
+   ═══════════════════════════════════════════════════════════════════════════════ */
+.welcome-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  pointer-events: none;
+}
+
+.welcome-screen__content {
+  text-align: center;
+  animation: welcomePopIn 1.5s cubic-bezier(0.2, 1, 0.3, 1) forwards;
+}
+
+@keyframes welcomePopIn {
+  0% { opacity: 0; transform: scale(0.9) translateY(20px); filter: blur(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+}
+
+.welcome-screen--exit .welcome-screen__content {
+  animation: welcomePopOut 1.2s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+}
+
+@keyframes welcomePopOut {
+  0% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+  100% { opacity: 0; transform: scale(1.05) translateY(-10px); filter: blur(10px); }
+}
+
+.welcome-screen__title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 900;
+  letter-spacing: 4px;
+  background: linear-gradient(90deg, #ffffff 0%, #38bdf8 50%, #f4a623 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.5));
+  margin-bottom: 20px;
+}
+
+.welcome-screen__subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  color: rgba(56, 189, 248, 0.8);
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  animation: pulseSubtitle 2s ease-in-out infinite;
+}
+
+@keyframes pulseSubtitle {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; text-shadow: 0 0 10px rgba(56, 189, 248, 0.6); }
+}
+
+.welcome-screen__scan-line {
+  height: 2px;
+  width: 100%;
+  max-width: 300px;
+  margin: 20px auto 0;
+  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.8), transparent);
+  animation: welcomeScanSlide 2s ease-in-out infinite alternate;
+}
+
+@keyframes welcomeScanSlide {
+  0% { transform: scaleX(0.5); opacity: 0.5; }
+  100% { transform: scaleX(1.5); opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════════
+   DASHBOARD TRANSITIONS (FLUENCY)
+   ═══════════════════════════════════════════════════════════════════════════════ */
+.dashboard-root {
+  transition: opacity 1.5s ease, filter 1.5s ease;
+}
+
+.dashboard-root--hidden {
+  opacity: 0;
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.dashboard-root--active {
+  opacity: 1;
+  filter: blur(0);
+  pointer-events: auto;
+}
+
+/* Stagger fade in for dashboard children */
+.dashboard-root--active .dashboard-header {
+  animation: dashItemIn 1s cubic-bezier(0.2, 1, 0.3, 1) forwards 0.2s;
+  opacity: 0;
+}
+.dashboard-root--active .top-row > * {
+  animation: dashItemIn 1s cubic-bezier(0.2, 1, 0.3, 1) forwards 0.4s;
+  opacity: 0;
+}
+.dashboard-root--active .chart-card {
+  animation: dashItemIn 1s cubic-bezier(0.2, 1, 0.3, 1) forwards 0.6s;
+  opacity: 0;
+}
+.dashboard-root--active .stat-cards-row > * {
+  animation: dashItemIn 1s cubic-bezier(0.2, 1, 0.3, 1) forwards 0.8s;
+  opacity: 0;
+}
+.dashboard-root--active .log-panels-row > * {
+  animation: dashItemIn 1s cubic-bezier(0.2, 1, 0.3, 1) forwards 1.0s;
+  opacity: 0;
+}
+
+@keyframes dashItemIn {
+  from { opacity: 0; transform: translateY(20px); filter: blur(5px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
