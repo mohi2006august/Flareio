@@ -10,7 +10,6 @@ import StatCards from './components/StatCards';
 import LogPanels from './components/LogPanels';
 import SpaceBackground from './components/SpaceBackground';
 import Preloader from './components/Preloader';
-import WelcomeScreen from './components/WelcomeScreen';
 
 function DashboardWithVoice({ phase }) {
   const [muted, setMuted] = useState(false);
@@ -58,24 +57,18 @@ function DashboardWithVoice({ phase }) {
 }
 
 export default function App() {
-  const [phase, setPhase] = useState('PRELOAD'); // PRELOAD, WELCOME, DASHBOARD
+  const [phase, setPhase] = useState('PRELOAD'); // PRELOAD, DASHBOARD
 
-  const handlePreloaderDone = useCallback(() => setPhase('WELCOME'), []);
-  const handleWelcomeDone = useCallback(() => setPhase('DASHBOARD'), []);
+  const handlePreloaderDone = useCallback(() => setPhase('DASHBOARD'), []);
 
   return (
     <>
       {phase === 'PRELOAD' && <Preloader onDone={handlePreloaderDone} />}
-      
-      {/* Welcome Screen mounts after preloader */}
-      {phase === 'WELCOME' && <WelcomeScreen onDone={handleWelcomeDone} />}
 
       {/* Mount Dashboard early to initialize SpaceBackground, but keep it visually hidden until DASHBOARD phase */}
-      {phase !== 'PRELOAD' && (
-        <DashboardProvider>
-          <DashboardWithVoice phase={phase} />
-        </DashboardProvider>
-      )}
+      <DashboardProvider>
+        <DashboardWithVoice phase={phase} />
+      </DashboardProvider>
     </>
   );
 }
