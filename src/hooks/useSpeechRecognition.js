@@ -77,7 +77,17 @@ export function useSpeechRecognition({ speak, muted }) {
       }
     };
     recognition.onend = () => setListening(false);
-    recognition.onerror = () => setListening(false);
+    recognition.onerror = (e) => {
+      setListening(false);
+      setTranscript('Error');
+      if (e.error === 'not-allowed') {
+        setAnswer('Microphone access denied. Please enable microphone permissions in your browser address bar.');
+      } else if (e.error === 'no-speech') {
+        setAnswer('No speech detected. Please try asking again.');
+      } else {
+        setAnswer(`Speech recognition error: ${e.error}`);
+      }
+    };
     recognitionRef.current = recognition;
 
     return () => {
@@ -93,7 +103,13 @@ export function useSpeechRecognition({ speak, muted }) {
     setTranscript('');
     setAnswer('');
     setListening(true);
-    try { recognitionRef.current.start(); } catch {}
+    try { 
+      recognitionRef.current.start(); 
+    } catch (e) {
+      setListening(false);
+      setTranscript('Error');
+      setAnswer('Could not access microphone engine. Try reloading the page.');
+    }
   }, []);
 
   const stopListening = useCallback(() => {
