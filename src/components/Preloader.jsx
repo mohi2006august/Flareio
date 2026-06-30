@@ -11,16 +11,96 @@ const BOOT_STEPS = [
   { label: 'Space weather dashboard ready.',        duration: 300 },
 ];
 
-// Total = ~3630ms — long enough to feel premium, short enough to not annoy
+// Telemetry strings to simulate real-time operations
+const TELEMETRY_POOL = [
+  "MAG_FLUX: 4.82e-6 T/s", "ORBIT: Aditya-L1 Halo L1", "SOLEXS_TEMP: 243.15 K", 
+  "HEL1OS_HV: 1.25 kV", "DATA_RATE: 12.4 Mbps", "SNR: 42.8 dB", 
+  "CR_SHIELD: NOMINAL", "SOLAR_WIND: 428 km/s", "SW_DENSITY: 6.2 p/cm³", 
+  "HE_ABUNDANCE: 4.2%", "DEC: -15° 42' 18\"", "RA: 14h 28m 35s",
+  "INFERENCE: PBCAT-v2.1", "SYS_CLK: UT_NOMINAL", "CORE_USAGE: 38.4%"
+];
+
+// Soft synthesizer audio feedback
+const playTone = (freq, type = 'sine', duration = 0.06, volume = 0.05) => {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    
+    gainNode.gain.setValueAtTime(volume, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+    
+    osc.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  } catch (e) {
+    // Fail silently if blocked by browser policy
+  }
+};
+
+const playCompletionSwell = () => {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const now = ctx.currentTime;
+    
+    const freqs = [523.25, 659.25, 783.99, 1046.50]; // C Major Chord (C5, E5, G5, C6)
+    freqs.forEach((f, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(f, now + i * 0.08);
+      
+      gain.gain.setValueAtTime(0.04, now + i * 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5 + i * 0.08);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now + i * 0.08);
+      osc.stop(now + 0.6 + i * 0.08);
+    });
+  } catch (e) {}
+};
 
 export default function Preloader({ onDone }) {
   const canvasRef = useRef(null);
   const [stepIdx, setStepIdx] = useState(0);
   const [progress, setProgress] = useState(0);
   const [exiting, setExiting] = useState(false);
+  const [telemetry, setTelemetry] = useState([]);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  
   const rafRef = useRef(null);
 
-  // ── Canvas: animated sun + stars ─────────────────────────────────────────
+  // ── Telemetry feed generator ──────────────────────────────────────────────
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTelemetry(prev => {
+        const next = [...prev];
+        if (next.length > 14) next.shift();
+        const randStr = TELEMETRY_POOL[Math.floor(Math.random() * TELEMETRY_POOL.length)];
+        const ts = new Date().toISOString().split('T')[1].substring(0, 8);
+        next.push(`[${ts}] ${randStr}`);
+        
+        // Soft audio click on telemetry change
+        if (soundEnabled && Math.random() < 0.4) {
+          playTone(1200 + Math.random() * 800, 'sine', 0.01, 0.01);
+        }
+        return next;
+      });
+    }, 250);
+    return () => clearInterval(timer);
+  }, [soundEnabled]);
+
+  // ── Canvas Animation: Solar dynamics and stars ──────────────────────────────
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -34,41 +114,81 @@ export default function Preloader({ onDone }) {
     };
     window.addEventListener('resize', onResize);
 
-    // Generate stars once
-    const stars = Array.from({ length: 280 }, () => ({
+    const stars = Array.from({ length: 350 }, () => ({
       x: Math.random() * W,
       y: Math.random() * H,
-      r: Math.random() * 1.2 + 0.2,
-      o: Math.random() * 0.6 + 0.2,
+      r: Math.random() * 1.5 + 0.2,
+      o: Math.random() * 0.7 + 0.3,
       twinkle: Math.random() * Math.PI * 2,
       speed: Math.random() * 0.02 + 0.005,
     }));
+
+    // Coronal mass ejection shockwaves
+    let shockwaves = [];
 
     let t = 0;
     const draw = () => {
       t += 0.016;
 
-      // Background
-      ctx.fillStyle = '#020c1b';
+      // Dark space backdrop with radial gradient depth
+      const bgGrad = ctx.createRadialGradient(W/2, H/2, 50, W/2, H/2, Math.max(W, H));
+      bgGrad.addColorStop(0, '#041630');
+      bgGrad.addColorStop(1, '#020c1b');
+      ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, W, H);
+
+      // Cyber grid lines
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.02)';
+      ctx.lineWidth = 1;
+      const gridSize = 40;
+      for (let x = 0; x < W; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, H);
+        ctx.stroke();
+      }
+      for (let y = 0; y < H; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+        ctx.stroke();
+      }
 
       // Stars
       stars.forEach(s => {
-        const opacity = s.o * (0.6 + 0.4 * Math.sin(s.twinkle + t * s.speed * 60));
+        const opacity = s.o * (0.5 + 0.5 * Math.sin(s.twinkle + t * s.speed * 60));
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255,255,255,${opacity})`;
         ctx.fill();
       });
 
-      // Sun — centred slightly left of centre
+      // Sun position
       const sx = W * 0.5, sy = H * 0.42;
 
-      // Outer halo pulses
-      [80, 55, 36].forEach((r, i) => {
-        const pulse = 1 + 0.06 * Math.sin(t * 1.2 + i * 1.2);
+      // Dynamic Coronal Shockwaves
+      if (Math.random() < 0.012 && shockwaves.length < 5) {
+        shockwaves.push({ r: 20, maxR: 200 + Math.random() * 200, opacity: 0.7 });
+      }
+
+      shockwaves = shockwaves.filter(sw => {
+        sw.r += 2.5;
+        sw.opacity *= 0.97;
+        
+        ctx.beginPath();
+        ctx.arc(sx, sy, sw.r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(244, 166, 35, ${sw.opacity * 0.25})`;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        
+        return sw.r < sw.maxR && sw.opacity > 0.01;
+      });
+
+      // Pulsing outer solar halos
+      [90, 60, 38].forEach((r, i) => {
+        const pulse = 1 + 0.08 * Math.sin(t * 1.5 + i * 1.5);
         const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, r * pulse);
-        g.addColorStop(0, `rgba(244,166,35,${[0.08, 0.14, 0.22][i]})`);
+        g.addColorStop(0, `rgba(244,166,35,${[0.08, 0.16, 0.26][i]})`);
         g.addColorStop(1, 'rgba(244,166,35,0)');
         ctx.beginPath();
         ctx.arc(sx, sy, r * pulse, 0, Math.PI * 2);
@@ -76,41 +196,59 @@ export default function Preloader({ onDone }) {
         ctx.fill();
       });
 
-      // Corona rays
-      for (let i = 0; i < 12; i++) {
-        const angle = (i / 12) * Math.PI * 2 + t * 0.08;
-        const len = 30 + 12 * Math.sin(t * 1.5 + i * 0.8);
+      // Rotating corona spikes
+      for (let i = 0; i < 16; i++) {
+        const angle = (i / 16) * Math.PI * 2 + t * 0.05;
+        const len = 35 + 15 * Math.sin(t * 2 + i * 1.1);
         const x1 = sx + Math.cos(angle) * 18;
         const y1 = sy + Math.sin(angle) * 18;
         const x2 = sx + Math.cos(angle) * (18 + len);
         const y2 = sy + Math.sin(angle) * (18 + len);
         const grad = ctx.createLinearGradient(x1, y1, x2, y2);
-        grad.addColorStop(0, 'rgba(244,166,35,0.6)');
+        grad.addColorStop(0, 'rgba(244,166,35,0.7)');
+        grad.addColorStop(0.5, 'rgba(232,114,28,0.3)');
         grad.addColorStop(1, 'rgba(244,166,35,0)');
         ctx.beginPath();
         ctx.moveTo(x1, y1);
         ctx.lineTo(x2, y2);
         ctx.strokeStyle = grad;
-        ctx.lineWidth = 2.5 - i * 0.1;
+        ctx.lineWidth = 3 - i * 0.12;
         ctx.stroke();
       }
 
-      // Sun body gradient
-      const sunGrad = ctx.createRadialGradient(sx - 4, sy - 4, 0, sx, sy, 18);
-      sunGrad.addColorStop(0, '#fff9d6');
-      sunGrad.addColorStop(0.4, '#f4a623');
-      sunGrad.addColorStop(1, '#e8721c');
+      // Main Sun sphere
+      const sunGrad = ctx.createRadialGradient(sx - 5, sy - 5, 0, sx, sy, 20);
+      sunGrad.addColorStop(0, '#fffae0');
+      sunGrad.addColorStop(0.3, '#fff066');
+      sunGrad.addColorStop(0.6, '#f4a623');
+      sunGrad.addColorStop(1, '#d35400');
       ctx.beginPath();
-      ctx.arc(sx, sy, 18, 0, Math.PI * 2);
+      ctx.arc(sx, sy, 20, 0, Math.PI * 2);
       ctx.fillStyle = sunGrad;
       ctx.fill();
 
-      // X-ray flare arc
-      const fAngle = t * 0.4;
+      // Core glow
+      ctx.shadowColor = '#f4a623';
+      ctx.shadowBlur = 30;
       ctx.beginPath();
-      ctx.arc(sx, sy, 26, fAngle, fAngle + 1.2);
-      ctx.strokeStyle = `rgba(239,68,68,${0.5 + 0.3 * Math.sin(t * 2)})`;
-      ctx.lineWidth = 3;
+      ctx.arc(sx, sy, 12, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.fill();
+      ctx.shadowBlur = 0; // reset
+
+      // Orbital telemetry rings
+      ctx.beginPath();
+      ctx.arc(sx, sy, 110, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+      ctx.setLineDash([6, 15]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Rotating sweep indicator
+      ctx.beginPath();
+      ctx.arc(sx, sy, 110, t, t + 0.5);
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+      ctx.lineWidth = 2;
       ctx.stroke();
 
       rafRef.current = requestAnimationFrame(draw);
@@ -123,7 +261,7 @@ export default function Preloader({ onDone }) {
     };
   }, []);
 
-  // ── Boot sequence ──────────────────────────────────────────────────────────
+  // ── Boot sequence logic ───────────────────────────────────────────────────
   useEffect(() => {
     let step = 0;
     let prog = 0;
@@ -133,16 +271,23 @@ export default function Preloader({ onDone }) {
     const tick = () => {
       if (step >= BOOT_STEPS.length) return;
       const currentStep = BOOT_STEPS[step];
-      elapsed += 16; // ~60fps tick
+      elapsed += 16; 
 
-      // Advance step
       if (elapsed >= currentStep.duration) {
         elapsed = 0;
         step++;
         setStepIdx(step);
+        
+        // Play beep on new step
+        if (soundEnabled) {
+          if (step === BOOT_STEPS.length) {
+            playCompletionSwell();
+          } else {
+            playTone(880 + step * 60, 'sine', 0.06, 0.04);
+          }
+        }
       }
 
-      // Smooth progress bar
       prog = BOOT_STEPS.slice(0, step).reduce((s, b) => s + b.duration, 0) +
              Math.min(elapsed, currentStep?.duration || 0);
       setProgress(Math.min(100, (prog / totalDuration) * 100));
@@ -150,21 +295,80 @@ export default function Preloader({ onDone }) {
       if (step < BOOT_STEPS.length) {
         setTimeout(tick, 16);
       } else {
-        // All steps done — fade out
         setTimeout(() => {
           setExiting(true);
           setTimeout(onDone, 700);
-        }, 300);
+        }, 400);
       }
     };
 
+    // Initial audio cue
+    if (soundEnabled) {
+      playTone(440, 'triangle', 0.15, 0.05);
+    }
+
     const timeout = setTimeout(tick, 300);
     return () => clearTimeout(timeout);
-  }, [onDone]);
+  }, [onDone, soundEnabled]);
 
   return (
     <div className={`preloader ${exiting ? 'preloader--exit' : ''}`}>
       <canvas ref={canvasRef} className="preloader__canvas" />
+
+      {/* Cyberpunk HUD Grid Overlay */}
+      <div className="preloader__hud-borders">
+        <div className="hud-corner top-left"></div>
+        <div className="hud-corner top-right"></div>
+        <div className="hud-corner bottom-left"></div>
+        <div className="hud-corner bottom-right"></div>
+      </div>
+
+      {/* Telemetry Stream Left */}
+      <div className="preloader__side-hud left">
+        <div className="hud-label">TELEMETRY_LOG</div>
+        <div className="hud-stream">
+          {telemetry.map((tLine, i) => (
+            <div key={i} className="hud-stream-line">{tLine}</div>
+          ))}
+        </div>
+      </div>
+
+      {/* Sensor Calibration Status Right */}
+      <div className="preloader__side-hud right">
+        <div className="hud-label">INSTRUMENT_STATUS</div>
+        <div className="hud-status-grid">
+          <div className="hud-status-item">
+            <span>SOLEXS_X_RAY</span>
+            <span className={stepIdx >= 3 ? "active" : "standby"}>
+              {stepIdx >= 3 ? "ACTIVE" : "STANDBY"}
+            </span>
+          </div>
+          <div className="hud-status-item">
+            <span>HEL1OS_CALIB</span>
+            <span className={stepIdx >= 4 ? "active" : "standby"}>
+              {stepIdx >= 4 ? "NOMINAL" : "CALIB"}
+            </span>
+          </div>
+          <div className="hud-status-item">
+            <span>L1_ORBIT_LOCK</span>
+            <span className={stepIdx >= 2 ? "active" : "standby"}>
+              {stepIdx >= 2 ? "LOCKED" : "SEARCH"}
+            </span>
+          </div>
+          <div className="hud-status-item">
+            <span>ANALYTICS_AI</span>
+            <span className={stepIdx >= 6 ? "active" : "standby"}>
+              {stepIdx >= 6 ? "ONLINE" : "OFFLINE"}
+            </span>
+          </div>
+        </div>
+
+        {/* Dynamic Scan Line visual info */}
+        <div className="hud-visual-scap">
+          <div className="scap-bar" style={{ height: `${progress * 0.6}px` }} />
+          <div className="scap-text">ADITYA_L1 // HALO_Z</div>
+        </div>
+      </div>
 
       <div className="preloader__ui">
         {/* Logo */}
@@ -202,6 +406,15 @@ export default function Preloader({ onDone }) {
         <div className="preloader__subtitle">
           Solar Flare Forecasting System · ISRO / Space Weather Division
         </div>
+
+        {/* Audio Mute toggle on Preloader */}
+        <button 
+          className="preloader__sound-toggle"
+          onClick={() => setSoundEnabled(!soundEnabled)}
+          title="Toggle audio telemetry"
+        >
+          {soundEnabled ? "🔊 AUDIO ONLINE" : "🔇 AUDIO MUTED"}
+        </button>
 
         {/* Scanning line animation */}
         <div className="preloader__scan-box">

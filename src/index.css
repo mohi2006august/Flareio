@@ -922,6 +922,28 @@ body {
   transform-style: preserve-3d;
 }
 
+/* Auto float/drift animation for cards to make them feel floating in space */
+@keyframes cardFloat {
+  0% { transform: translateY(0) translateZ(8px); }
+  50% { transform: translateY(-6px) translateZ(12px); }
+  100% { transform: translateY(0) translateZ(8px); }
+}
+
+.tilt-card {
+  animation: cardFloat 8s ease-in-out infinite alternate;
+}
+
+/* Stagger card float animations so they drift independently */
+.top-row > :nth-child(1) { animation-delay: 0s; }
+.top-row > :nth-child(2) { animation-delay: 1.8s; }
+.chart-card { animation-delay: 3.2s; }
+.stat-cards-row > :nth-child(1) { animation-delay: 0.6s; }
+.stat-cards-row > :nth-child(2) { animation-delay: 2.4s; }
+.stat-cards-row > :nth-child(3) { animation-delay: 1.2s; }
+.stat-cards-row > :nth-child(4) { animation-delay: 3.0s; }
+.log-panels-row > :nth-child(1) { animation-delay: 4s; }
+.log-panels-row > :nth-child(2) { animation-delay: 2s; }
+
 /* ═══════════════════════════════════════════════════════════════════════════════
    PRELOADER
    ═══════════════════════════════════════════════════════════════════════════════ */
@@ -960,6 +982,137 @@ body {
   gap: 20px;
   width: min(480px, 90vw);
   margin-top: 200px;
+}
+
+/* ── HUD Corner brackets ── */
+.preloader__hud-borders {
+  position: absolute;
+  inset: 24px;
+  border: 1px dashed rgba(56, 189, 248, 0.05);
+  pointer-events: none;
+  z-index: 5;
+}
+.hud-corner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(56, 189, 248, 0.25);
+}
+.hud-corner.top-left { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+.hud-corner.top-right { top: -2px; right: -2px; border-left: none; border-bottom: none; }
+.hud-corner.bottom-left { bottom: -2px; left: -2px; border-right: none; border-top: none; }
+.hud-corner.bottom-right { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+
+/* ── Side HUD Telemetry Displays ── */
+.preloader__side-hud {
+  position: fixed;
+  top: 12%;
+  bottom: 12%;
+  width: 240px;
+  z-index: 6;
+  font-family: 'JetBrains Mono', monospace;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.preloader__side-hud.left { left: 48px; }
+.preloader__side-hud.right { right: 48px; }
+
+.hud-label {
+  font-size: 11px;
+  color: rgba(56, 189, 248, 0.85);
+  letter-spacing: 2px;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.25);
+  padding-bottom: 6px;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+.hud-stream {
+  flex: 1;
+  font-size: 10px;
+  color: rgba(56, 189, 248, 0.45);
+  overflow: hidden;
+  line-height: 1.65;
+}
+.hud-stream-line {
+  white-space: nowrap;
+  animation: streamFadeIn 0.25s ease-out;
+}
+@keyframes streamFadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hud-status-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.hud-status-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.35);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  padding-bottom: 5px;
+}
+.hud-status-item span.active {
+  color: #22c55e;
+  text-shadow: 0 0 8px rgba(34, 197, 94, 0.55);
+}
+.hud-status-item span.standby {
+  color: #f4a623;
+  text-shadow: 0 0 8px rgba(244, 166, 35, 0.4);
+}
+
+.hud-visual-scap {
+  position: relative;
+  height: 80px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: auto;
+  background: rgba(255, 255, 255, 0.01);
+}
+.scap-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0; right: 0;
+  background: linear-gradient(0deg, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0.02) 100%);
+  border-top: 1.5px solid rgba(56, 189, 248, 0.45);
+  transition: height 0.4s ease;
+}
+.scap-text {
+  position: absolute;
+  bottom: 8px;
+  left: 10px;
+  font-size: 9px;
+  color: rgba(56, 189, 248, 0.65);
+  letter-spacing: 1.5px;
+}
+
+/* ── Audio Button Toggle ── */
+.preloader__sound-toggle {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.4);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  letter-spacing: 1.5px;
+  transition: all 0.25s ease;
+  margin-bottom: -4px;
+  pointer-events: auto;
+  z-index: 10;
+}
+.preloader__sound-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
 }
 
 /* ── Logo ─── */
@@ -1153,3 +1306,8 @@ body {
   font-size: 28px;
   color: rgba(255,255,255,0.04);
 }
+
+@media (max-width: 1000px) {
+  .preloader__side-hud { display: none !important; }
+}
+
