@@ -9,7 +9,7 @@ function matchIntent(transcript, state) {
   const t = transcript.toLowerCase();
 
   if (t.includes('probability') || t.includes('chance') || t.includes('likelihood')) {
-    return `Current flare probability is ${state.probability.toFixed(1)}%, with ${state.confidence}% confidence. Alert level is ${state.alertLevel}.`;
+    return `Current flare probability is ${state.nowcast.probability.toFixed(1)}%, with ${state.nowcast.confidence}% confidence. Alert level is ${state.alertLevel}.`;
   }
   if (t.includes('alert') || t.includes('warning') || t.includes('status')) {
     const msgs = {
@@ -21,24 +21,24 @@ function matchIntent(transcript, state) {
     return msgs[state.alertLevel] || `Current alert level is ${state.alertLevel}.`;
   }
   if (t.includes('x-class') || t.includes('x class') || t.includes('xclass') || t.includes('last flare')) {
-    const xEntry = state.catalogue?.find(c => c.flareClass?.startsWith('X'));
+    const xEntry = state.eventLog?.find(c => c.class?.startsWith('X'));
     if (xEntry) {
-      const dt = new Date(xEntry.timestamp);
-      return `Last X-class flare was ${xEntry.flareClass} detected at ${dt.toLocaleTimeString()} on ${dt.toLocaleDateString()}.`;
+      const dt = new Date(xEntry.time);
+      return `Last X-class flare was ${xEntry.class} detected at ${dt.toLocaleTimeString()} on ${dt.toLocaleDateString()}.`;
     }
     return 'No X-class flare has been detected in the current session catalogue.';
   }
   if (t.includes('confidence')) {
-    return `Model confidence is currently ${state.confidence}%.`;
+    return `Model confidence is currently ${state.nowcast.confidence}%.`;
   }
   if (t.includes('flux') || t.includes('solexs') || t.includes('helios')) {
     return `SoLEXS flux is ${state.fluxSoLEXS?.toExponential(2)} W per square meter. HEL1OS flux is ${state.fluxHEL1OS?.toExponential(2)} W per square meter.`;
   }
   if (t.includes('flare class') || t.includes('class')) {
-    return `Current predicted flare class is ${state.flareClass}.`;
+    return `Current predicted flare class is ${state.nowcast.flareClass}.`;
   }
-  if (t.includes('system mode') || t.includes('mode')) {
-    return `System is operating in ${state.systemMode} mode. Data status is ${state.dataStatus}.`;
+  if (t.includes('system mode') || t.includes('mode') || t.includes('data')) {
+    return `Data source is ${state.metrics.dataSource}. Inference latency is ${state.metrics.latency} milliseconds.`;
   }
   return `I heard: "${transcript}". Try asking about probability, alerts, flux, confidence, or X-class flares.`;
 }
