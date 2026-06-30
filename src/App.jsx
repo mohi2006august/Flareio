@@ -8,6 +8,7 @@ import AlertLevelCard from './components/AlertLevelCard';
 import LightCurveChart from './components/LightCurveChart';
 import StatCards from './components/StatCards';
 import LogPanels from './components/LogPanels';
+import SpaceBackground from './components/SpaceBackground';
 
 function DashboardWithVoice() {
   const [muted, setMuted] = useState(false);
@@ -15,6 +16,9 @@ function DashboardWithVoice() {
 
   return (
     <VoiceContext.Provider value={{ muted, setMuted, speak, ttsSupported }}>
+      {/* 3D Three.js Space Background */}
+      <SpaceBackground />
+
       <div className="dashboard-root">
         <Header />
         <main className="dashboard-main">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDashboard } from '../context/DashboardContext';
 import { Activity, Clock, Wifi, Cpu } from 'lucide-react';
+import { use3DTilt } from '../hooks/use3DTilt';
 
 function CountdownTimer({ lastUpdateTime }) {
   const [elapsed, setElapsed] = useState(0);
@@ -13,8 +14,8 @@ function CountdownTimer({ lastUpdateTime }) {
     return () => clearInterval(interval);
   }, [lastUpdateTime]);
 
-  const remaining = Math.max(0, 30 - elapsed);
-  const progress = ((30 - remaining) / 30) * 100;
+  const remaining = Math.max(0, 5 - (elapsed % 5));
+  const progress = ((5 - remaining) / 5) * 100;
 
   return (
     <div className="countdown-wrapper">
@@ -30,7 +31,7 @@ function CountdownTimer({ lastUpdateTime }) {
             strokeDasharray={`${2 * Math.PI * 22}`}
             strokeDashoffset={`${2 * Math.PI * 22 * (progress / 100)}`}
             transform="rotate(-90 26 26)"
-            style={{ transition: 'stroke-dashoffset 1s linear' }}
+            style={{ transition: 'stroke-dashoffset 1s linear', filter: 'drop-shadow(0 0 4px #f4a623)' }}
           />
           <text x="26" y="26" textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="13" fontWeight="700" fontFamily="monospace">
             {remaining}s
@@ -95,32 +96,44 @@ const STAT_CONFIGS = [
   },
 ];
 
+function StatCard({ cfg, state }) {
+  const Icon = cfg.icon;
+  const { cardRef, glareRef, onMouseMove, onMouseLeave } = use3DTilt({ maxTilt: 15, scale: 1.04, glareOpacity: 0.12 });
+
+  return (
+    <div
+      ref={cardRef}
+      className="stat-card tilt-card"
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+    >
+      <div ref={glareRef} className="tilt-glare" />
+      <div className="stat-card__header">
+        <Icon size={14} className="stat-card__icon" />
+        <span className="stat-card__label">{cfg.label}</span>
+      </div>
+      <div className="stat-card__value">
+        {cfg.renderValue ? cfg.renderValue(state) : (
+          <span className="stat-card__number">{cfg.getValue(state)}</span>
+        )}
+      </div>
+      {cfg.getExtra && (
+        <div className="stat-card__extra" style={{ color: cfg.getExtraColor(state) }}>
+          {cfg.getExtra(state)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function StatCards() {
   const { state } = useDashboard();
 
   return (
     <div className="stat-cards-row">
-      {STAT_CONFIGS.map(cfg => {
-        const Icon = cfg.icon;
-        return (
-          <div className="stat-card" key={cfg.id}>
-            <div className="stat-card__header">
-              <Icon size={14} className="stat-card__icon" />
-              <span className="stat-card__label">{cfg.label}</span>
-            </div>
-            <div className="stat-card__value">
-              {cfg.renderValue ? cfg.renderValue(state) : (
-                <span className="stat-card__number">{cfg.getValue(state)}</span>
-              )}
-            </div>
-            {cfg.getExtra && (
-              <div className="stat-card__extra" style={{ color: cfg.getExtraColor(state) }}>
-                {cfg.getExtra(state)}
-              </div>
-            )}
-          </div>
-        );
-      })}
+      {STAT_CONFIGS.map(cfg => (
+        <StatCard key={cfg.id} cfg={cfg} state={state} />
+      ))}
     </div>
   );
 }

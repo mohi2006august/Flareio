@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
 import {
   ComposedChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer, ReferenceLine,
+  Tooltip, ResponsiveContainer, ReferenceLine, Area,
 } from 'recharts';
 import { useDashboard } from '../context/DashboardContext';
+import { use3DTilt } from '../hooks/use3DTilt';
 
 const FLARE_THRESHOLDS = [
   { value: 1e-4, label: 'X', color: '#ef4444' },
@@ -11,12 +12,6 @@ const FLARE_THRESHOLDS = [
   { value: 1e-6, label: 'C', color: '#eab308' },
   { value: 1e-7, label: 'B', color: '#22c55e' },
 ];
-
-function formatFlux(v) {
-  if (!v || v <= 0) return '0';
-  const exp = Math.floor(Math.log10(v));
-  return `10^${exp}`;
-}
 
 function formatTime(ts) {
   if (!ts) return '';
@@ -44,15 +39,11 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-const CustomYTick = ({ x, y, payload }) => {
-  const val = payload.value;
-  const label = `10^${val}`;
-  return (
-    <text x={x - 4} y={y} textAnchor="end" fill="rgba(255,255,255,0.45)" fontSize={10} fontFamily="monospace" dominantBaseline="middle">
-      {label}
-    </text>
-  );
-};
+const CustomYTick = ({ x, y, payload }) => (
+  <text x={x - 4} y={y} textAnchor="end" fill="rgba(255,255,255,0.45)" fontSize={10} fontFamily="monospace" dominantBaseline="middle">
+    10^{payload.value}
+  </text>
+);
 
 const CustomXTick = ({ x, y, payload }) => (
   <text x={x} y={y + 10} textAnchor="middle" fill="rgba(255,255,255,0.4)" fontSize={10} fontFamily="monospace">
@@ -62,6 +53,7 @@ const CustomXTick = ({ x, y, payload }) => (
 
 export default function LightCurveChart() {
   const { state } = useDashboard();
+  const { cardRef, glareRef, onMouseMove, onMouseLeave } = use3DTilt({ maxTilt: 5, scale: 1.01, glareOpacity: 0.08 });
 
   const chartData = useMemo(() => {
     const sixHoursAgo = Date.now() - 6 * 3600 * 1000;
@@ -77,7 +69,6 @@ export default function LightCurveChart() {
   const yDomain = [-9, -3];
   const yTicks = [-9, -8, -7, -6, -5, -4, -3];
 
-  // Sample x ticks: show ~6 evenly spaced
   const xTicksRaw = useMemo(() => {
     if (chartData.length === 0) return [];
     const step = Math.max(1, Math.floor(chartData.length / 6));
@@ -85,7 +76,14 @@ export default function LightCurveChart() {
   }, [chartData]);
 
   return (
-    <div className="chart-card">
+    <div
+      ref={cardRef}
+      className="chart-card tilt-card"
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+    >
+      <div ref={glareRef} className="tilt-glare" />
+
       <div className="chart-card__header">
         <span className="section-label">SOLAR X-RAY FLUX — LIGHT CURVE</span>
         <div className="chart-legend-pills">
@@ -102,7 +100,17 @@ export default function LightCurveChart() {
       <div className="chart-card__body">
         <ResponsiveContainer width="100%" height={260}>
           <ComposedChart data={chartData} margin={{ top: 10, right: 20, bottom: 10, left: 60 }}>
-            <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="4 4" />
+            <defs>
+              <linearGradient id="solexsGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#38bdf8" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="heliosGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#f4a623" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="#f4a623" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid stroke="rgba(255,255,255,0.04)" strokeDasharray="4 4" />
 
             {FLARE_THRESHOLDS.map(t => (
               <ReferenceLine
@@ -119,16 +127,15 @@ export default function LightCurveChart() {
               dataKey="timestamp"
               ticks={xTicksRaw}
               tick={<CustomXTick />}
-              axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+              axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
               tickLine={false}
               interval="preserveStartEnd"
             />
-
             <YAxis
               domain={yDomain}
               ticks={yTicks}
               tick={<CustomYTick />}
-              axisLine={{ stroke: 'rgba(255,255,255,0.1)' }}
+              axisLine={{ stroke: 'rgba(255,255,255,0.08)' }}
               tickLine={false}
               label={{
                 value: 'Flux (W/m²)',
@@ -140,27 +147,22 @@ export default function LightCurveChart() {
                 fontFamily: 'Inter, sans-serif',
               }}
             />
-
             <Tooltip content={<CustomTooltip />} />
 
+            {/* Area fills for depth */}
+            <Area type="monotone" dataKey="solexs" stroke="none" fill="url(#solexsGrad)" isAnimationActive={false} />
+            <Area type="monotone" dataKey="helios" stroke="none" fill="url(#heliosGrad)" isAnimationActive={false} />
+
             <Line
-              type="monotone"
-              dataKey="solexs"
-              name="SoLEXS"
-              stroke="#38bdf8"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4, fill: '#38bdf8', stroke: '#0a2342', strokeWidth: 2 }}
+              type="monotone" dataKey="solexs" name="SoLEXS"
+              stroke="#38bdf8" strokeWidth={2} dot={false}
+              activeDot={{ r: 5, fill: '#38bdf8', stroke: '#0a2342', strokeWidth: 2 }}
               isAnimationActive={false}
             />
             <Line
-              type="monotone"
-              dataKey="helios"
-              name="HEL1OS"
-              stroke="#f4a623"
-              strokeWidth={2}
-              dot={false}
-              activeDot={{ r: 4, fill: '#f4a623', stroke: '#0a2342', strokeWidth: 2 }}
+              type="monotone" dataKey="helios" name="HEL1OS"
+              stroke="#f4a623" strokeWidth={2} dot={false}
+              activeDot={{ r: 5, fill: '#f4a623', stroke: '#0a2342', strokeWidth: 2 }}
               isAnimationActive={false}
             />
           </ComposedChart>

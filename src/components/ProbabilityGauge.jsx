@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useDashboard } from '../context/DashboardContext';
+import { use3DTilt } from '../hooks/use3DTilt';
 
 const SIZE = 280;
 const STROKE = 22;
@@ -8,7 +9,7 @@ const CX = SIZE / 2;
 const CY = SIZE / 2;
 const START_ANGLE = -220;
 const END_ANGLE = 40;
-const ARC_SPAN = END_ANGLE - START_ANGLE; // 260 degrees
+const ARC_SPAN = END_ANGLE - START_ANGLE;
 
 function polarToCartesian(cx, cy, r, angleDeg) {
   const rad = ((angleDeg - 90) * Math.PI) / 180;
@@ -23,11 +24,11 @@ function describeArc(cx, cy, r, startAngle, endAngle) {
 }
 
 const GRADIENT_STOPS = [
-  { pct: 0,   color: '#22c55e' },
+  { pct: 0,    color: '#22c55e' },
   { pct: 0.25, color: '#eab308' },
-  { pct: 0.5, color: '#f4a623' },
+  { pct: 0.5,  color: '#f4a623' },
   { pct: 0.75, color: '#ef4444' },
-  { pct: 1,   color: '#dc2626' },
+  { pct: 1,    color: '#dc2626' },
 ];
 
 function getArcColor(probability) {
@@ -64,6 +65,8 @@ export default function ProbabilityGauge() {
   const targetRef = useRef({ probability, fillAngle });
   targetRef.current = { probability, fillAngle };
 
+  const { cardRef, glareRef, onMouseMove, onMouseLeave } = use3DTilt({ maxTilt: 10, scale: 1.03, glareOpacity: 0.1 });
+
   useEffect(() => {
     const animate = () => {
       const curr = animRef.current;
@@ -85,7 +88,6 @@ export default function ProbabilityGauge() {
     return () => cancelAnimationFrame(rafRef.current);
   }, []);
 
-  // Tick marks every 26 degrees (10%) across the arc
   const ticks = [];
   for (let i = 0; i <= 10; i++) {
     const angle = START_ANGLE + (i / 10) * ARC_SPAN;
@@ -96,7 +98,18 @@ export default function ProbabilityGauge() {
   const glowColor = alertColors[alertLevel] || '#f4a623';
 
   return (
-    <div className="gauge-card">
+    <div
+      ref={cardRef}
+      className="gauge-card tilt-card"
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+    >
+      {/* Glare overlay */}
+      <div ref={glareRef} className="tilt-glare" />
+
+      {/* 3D depth rings behind the card */}
+      <div className="gauge-3d-depth" />
+
       <div className="gauge-label">FLARE PROBABILITY</div>
       <div className="gauge-wrapper">
         <svg
@@ -104,7 +117,7 @@ export default function ProbabilityGauge() {
           width={SIZE}
           height={SIZE}
           viewBox={`0 0 ${SIZE} ${SIZE}`}
-          style={{ filter: `drop-shadow(0 0 18px ${glowColor}55)` }}
+          style={{ filter: `drop-shadow(0 0 24px ${glowColor}66)` }}
         >
           <defs>
             <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -113,16 +126,24 @@ export default function ProbabilityGauge() {
               ))}
             </linearGradient>
             <filter id="arcBlur">
-              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feGaussianBlur stdDeviation="4" result="blur" />
               <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
             </filter>
+            <filter id="innerGlow">
+              <feGaussianBlur stdDeviation="6" result="glow" />
+              <feMerge><feMergeNode in="glow" /><feMergeNode in="SourceGraphic" /></feMerge>
+            </filter>
+            <radialGradient id="innerBg" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="rgba(20,50,100,0.95)" />
+              <stop offset="100%" stopColor="rgba(10,35,66,0.85)" />
+            </radialGradient>
           </defs>
 
           {/* Track */}
           <path
             d={describeArc(CX, CY, R, START_ANGLE, END_ANGLE)}
             fill="none"
-            stroke="rgba(255,255,255,0.08)"
+            stroke="rgba(255,255,255,0.06)"
             strokeWidth={STROKE}
             strokeLinecap="round"
           />
@@ -136,9 +157,9 @@ export default function ProbabilityGauge() {
             d={describeArc(CX, CY, R, START_ANGLE, START_ANGLE)}
             fill="none"
             stroke={fillColor}
-            strokeWidth={STROKE + 8}
+            strokeWidth={STROKE + 12}
             strokeLinecap="round"
-            opacity={0.25}
+            opacity={0.2}
             filter="url(#arcBlur)"
           />
 
@@ -153,8 +174,9 @@ export default function ProbabilityGauge() {
           />
 
           {/* Inner circle */}
-          <circle cx={CX} cy={CY} r={R - STROKE / 2 - 16} fill="rgba(10,35,66,0.85)" />
-          <circle cx={CX} cy={CY} r={R - STROKE / 2 - 20} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={1} />
+          <circle cx={CX} cy={CY} r={R - STROKE / 2 - 10} fill="url(#innerBg)" />
+          <circle cx={CX} cy={CY} r={R - STROKE / 2 - 14} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth={1} />
+          <circle cx={CX} cy={CY} r={R - STROKE / 2 - 30} fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth={1} />
 
           {/* Center text */}
           <text
@@ -166,7 +188,7 @@ export default function ProbabilityGauge() {
             fontWeight="800"
             fill="white"
             fontFamily="'Orbitron', 'Rajdhani', monospace"
-            style={{ letterSpacing: '-1px' }}
+            style={{ letterSpacing: '-1px', filter: `drop-shadow(0 0 8px ${glowColor})` }}
           >
             {probability.toFixed(1)}%
           </text>
@@ -195,7 +217,7 @@ export default function ProbabilityGauge() {
         </svg>
       </div>
       <div className="gauge-confidence">
-        <span className="conf-dot" style={{ background: glowColor }} />
+        <span className="conf-dot" style={{ background: glowColor, boxShadow: `0 0 8px ${glowColor}` }} />
         Confidence: <strong>{confidence}%</strong>
       </div>
     </div>
