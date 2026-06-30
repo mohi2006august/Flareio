@@ -47,12 +47,10 @@ function DashboardWithVoice({ phase }) {
 
           {/* Bottom Section */}
           <div className="dashboard-bottom-section" style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '18px', alignItems: 'flex-end' }}>
+            <StatCards />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '18px', alignItems: 'flex-start' }}>
               <LightCurveChart />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                <StatCards />
-                <LogPanels />
-              </div>
+              <LogPanels />
             </div>
             <AlertLevelCard />
           </div>
