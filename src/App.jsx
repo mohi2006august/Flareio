@@ -10,6 +10,7 @@ import StatCards from './components/StatCards';
 import LogPanels from './components/LogPanels';
 import SpaceBackground from './components/SpaceBackground';
 import Preloader from './components/Preloader';
+import HudOverlay from './components/HudOverlay';
 
 function DashboardWithVoice({ phase }) {
   const [muted, setMuted] = useState(false);
@@ -42,8 +43,10 @@ function DashboardWithVoice({ phase }) {
             <ProbabilityGauge />
           </div>
 
-          {/* Spacer to expose the majestic 3D sun */}
-          <div style={{ flexGrow: 1, minHeight: '30vh' }} />
+          {/* Sun viewport area with HUD overlay */}
+          <div style={{ flexGrow: 1, minHeight: '35vh', position: 'relative' }}>
+            <HudOverlay />
+          </div>
 
           {/* Bottom Section */}
           <div className="dashboard-bottom-section" style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>

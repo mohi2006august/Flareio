@@ -178,7 +178,7 @@ function RealisticSun({ alertLevel }) {
     GREEN:  { primary: '#fff066', secondary: '#f4a623', glow: '#f4a623' },
     YELLOW: { primary: '#fff066', secondary: '#e8721c', glow: '#e8721c' },
     ORANGE: { primary: '#ffe600', secondary: '#ff4d00', glow: '#ff4d00' },
-    RED:    { primary: '#ffffff', secondary: '#b91c1c', glow: '#ef4444' },
+    RED:    { primary: '#ff6622', secondary: '#b91c1c', glow: '#ef4444' },
   };
   const palette = colors[alertLevel] || colors.GREEN;
 

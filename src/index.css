@@ -1362,3 +1362,153 @@ body {
 }
 
 
+/* ═══════════════════════════════════════════════════════════════════════════════
+   HUD OVERLAY – Mission Control Telemetry
+   ═══════════════════════════════════════════════════════════════════════════════ */
+.hud-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+}
+
+/* ── Crosshair ── */
+.hud-crosshair {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+.hud-crosshair__h,
+.hud-crosshair__v {
+  position: absolute;
+  background: rgba(255,255,255,0.07);
+}
+.hud-crosshair__h {
+  width: 120px; height: 1px;
+  top: 0; left: -60px;
+}
+.hud-crosshair__v {
+  width: 1px; height: 120px;
+  top: -60px; left: 0;
+}
+.hud-crosshair__circle {
+  position: absolute;
+  width: 24px; height: 24px;
+  top: -12px; left: -12px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 50%;
+}
+.hud-crosshair__label {
+  position: absolute;
+  top: 18px; left: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.2);
+  white-space: nowrap;
+}
+
+/* ── Telemetry Readouts ── */
+.hud-telem {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 14px;
+  background: rgba(4, 10, 22, 0.5);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 6px;
+}
+.hud-telem--tr {
+  top: 10px;
+  right: 20px;
+}
+.hud-telem--ml {
+  bottom: 20px;
+  right: 20px;
+}
+.hud-telem__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+}
+.hud-telem__key {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase;
+}
+.hud-telem__val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.7);
+}
+
+/* ── Scanning Ring ── */
+.hud-scan-ring {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.5;
+}
+.hud-scan-ring__arc {
+  transform-origin: 100px 100px;
+  animation: scanRingSpin 8s linear infinite;
+}
+@keyframes scanRingSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Corner Brackets ── */
+.hud-bracket {
+  position: absolute;
+  width: 28px; height: 28px;
+  border-color: rgba(255,255,255,0.1);
+  border-style: solid;
+  border-width: 0;
+}
+.hud-bracket--tl { top: 8px; left: 8px; border-top-width: 1px; border-left-width: 1px; }
+.hud-bracket--tr { top: 8px; right: 8px; border-top-width: 1px; border-right-width: 1px; }
+.hud-bracket--bl { bottom: 8px; left: 8px; border-bottom-width: 1px; border-left-width: 1px; }
+.hud-bracket--br { bottom: 8px; right: 8px; border-bottom-width: 1px; border-right-width: 1px; }
+
+/* ── Alert Tag ── */
+.hud-alert-tag {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 16px;
+  background: rgba(4, 10, 22, 0.5);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 20px;
+  backdrop-filter: blur(6px);
+}
+.hud-alert-tag__dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--hud-c);
+  box-shadow: 0 0 8px var(--hud-c);
+  animation: livePulse 1.5s ease-in-out infinite;
+}
+.hud-alert-tag__level {
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--hud-c);
+}
+.hud-alert-tag__prob {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.6);
+}
