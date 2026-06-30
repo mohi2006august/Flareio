@@ -195,16 +195,16 @@ function RealisticSun({ alertLevel }) {
   });
 
   return (
-    <group position={[0, -2, -25]}>
+    <group position={[0, -5, -45]}>
       {/* Sun Body */}
       <mesh>
-        <sphereGeometry args={[5, 128, 128]} />
+        <sphereGeometry args={[14, 128, 128]} />
         <sunMaterial ref={sunRef} />
       </mesh>
 
       {/* Atmospheric Corona */}
       <mesh>
-        <sphereGeometry args={[6.5, 64, 64]} />
+        <sphereGeometry args={[17.5, 64, 64]} />
         <coronaMaterial ref={coronaRef} transparent blending={THREE.AdditiveBlending} depthWrite={false} />
       </mesh>
     </group>
@@ -220,13 +220,13 @@ function SolarProminences({ active }) {
     const pos = new Float32Array(particleCount * 3);
     const params = []; // Store theta, loopRadius, loopHeight, angle, speed
     
-    // Create ~15 distinct magnetic loops
-    const numLoops = 20;
+    // Create ~25 distinct magnetic loops
+    const numLoops = 25;
     const loops = Array.from({ length: numLoops }, () => ({
       angle: Math.random() * Math.PI * 2,
       tilt: (Math.random() - 0.5) * Math.PI * 0.5,
-      radius: 5.0 + Math.random() * 2.0,
-      height: 2.0 + Math.random() * 6.0,
+      radius: 14.0 + Math.random() * 5.0,
+      height: 4.0 + Math.random() * 12.0,
       speed: 0.005 + Math.random() * 0.015
     }));
 
@@ -250,7 +250,7 @@ function SolarProminences({ active }) {
       }
 
       // Base circle parametric
-      const distance = 5.0; // Surface of sun
+      const distance = 14.0; // Surface of massive sun
       const r = p.radius * Math.sin(p.theta);
       const h = p.height * Math.sin(p.theta);
 
@@ -269,10 +269,10 @@ function SolarProminences({ active }) {
       const gx = lx * Math.cos(p.angle) - lz * Math.sin(p.angle);
       const gz = lx * Math.sin(p.angle) + lz * Math.cos(p.angle);
 
-      // Add to sun position (0, -2, -25)
+      // Add to sun position (0, -5, -45)
       positions[i * 3]     = 0 + gx;
-      positions[i * 3 + 1] = -2 + ly;
-      positions[i * 3 + 2] = -25 + gz;
+      positions[i * 3 + 1] = -5 + ly;
+      positions[i * 3 + 2] = -45 + gz;
     }
     ref.current.geometry.attributes.position.needsUpdate = true;
   });
@@ -312,9 +312,15 @@ function ParallaxCamera() {
   useFrame(() => {
     target.current.x += (mouse.current.x * 1.5 - target.current.x) * 0.04;
     target.current.y += (mouse.current.y * 1.0 - target.current.y) * 0.04;
+    
+    // Parallax scrolling: move camera down as user scrolls down the page
+    const scrollOffset = window.scrollY * 0.04;
+
     camera.position.x = target.current.x;
-    camera.position.y = target.current.y;
-    camera.lookAt(0, 0, 0);
+    camera.position.y = target.current.y - scrollOffset;
+    
+    // Look straight ahead so the scene translates smoothly upwards out of view
+    camera.lookAt(target.current.x * 0.1, (target.current.y - scrollOffset) * 0.1, -100);
   });
 
   return null;
