@@ -1,18 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useDashboard } from '../context/DashboardContext';
-import { Zap, Radio, Shield, Satellite } from 'lucide-react';
+import { Zap, Shield, Satellite } from 'lucide-react';
 import VoiceBar from './VoiceBar';
 
 export default function Header() {
-  const { simulateXClass } = useDashboard();
+  const { state, simulateXClass } = useDashboard();
   const [simulating, setSimulating] = useState(false);
   const [utcTime, setUtcTime] = useState('');
+  
+  // LIVE badge pulse animation triggered on state.history update (which ticks every 2s in mock, 
+  // but conceptually every prediction arrival)
+  const [pulse, setPulse] = useState(false);
+
+  useEffect(() => {
+    setPulse(true);
+    const id = setTimeout(() => setPulse(false), 500);
+    return () => clearTimeout(id);
+  }, [state.history.length]); // Pulse whenever new data arrives
 
   useEffect(() => {
     const tick = () => {
       const now = new Date();
       setUtcTime(
-        now.toISOString().replace('T', '  ').slice(0, 21) + ' UTC'
+        now.toISOString().replace('T', '  ').slice(0, 19) + ' UTC'
       );
     };
     tick();
@@ -28,7 +38,6 @@ export default function Header() {
 
   return (
     <header className="nav-header">
-      {/* Ambient glow line at the very top */}
       <div className="nav-header__glow-line" />
 
       {/* Left: Logo + Title */}
@@ -42,14 +51,14 @@ export default function Header() {
             FLARE<span className="nav-header__title-accent">SENSE</span>
           </h1>
           <p className="nav-header__subtitle">
-            PBCAT-M · SoLEXS / HEL1OS · Aditya-L1
+            PBCAT-M v1.0 · SoLEXS / HEL1OS
           </p>
         </div>
       </div>
 
-      {/* Center: Live Badge + Clock */}
+      {/* Center: Live Badge, Source, Clock */}
       <div className="nav-header__center">
-        <div className="nav-header__live-badge">
+        <div className={`nav-header__live-badge ${pulse ? 'pulse-active' : ''}`}>
           <span className="nav-header__live-dot" />
           <span className="nav-header__live-text">LIVE</span>
         </div>
@@ -59,7 +68,15 @@ export default function Header() {
           <span>ISRO Space Weather</span>
         </div>
         <div className="nav-header__divider" />
-        <time className="nav-header__clock">{utcTime}</time>
+        
+        {/* Data Source Pill always visible */}
+        <div className={`telem-source ${state.metrics.dataSource === 'DEGRADED' ? 'degraded' : ''}`} style={{ fontSize: '10px', padding: '3px 8px' }}>
+          <span className={`telem-source__dot ${state.metrics.dataSource === 'DEGRADED' ? 'telem-source__dot--degraded' : ''}`} />
+          {state.metrics.dataSource} · GOES
+        </div>
+        
+        <div className="nav-header__divider" />
+        <time className="nav-header__clock nav-header__clock--large">{utcTime}</time>
       </div>
 
       {/* Right: Controls */}

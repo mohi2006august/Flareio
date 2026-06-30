@@ -2,15 +2,13 @@ import React, { createContext, useContext, useReducer, useEffect, useRef, useCal
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 export const ALERT_LEVELS = {
-  GREEN: { label: 'GREEN', color: '#22c55e', glow: '#22c55e40', threshold: '< 25%' },
-  YELLOW: { label: 'YELLOW', color: '#eab308', glow: '#eab30840', threshold: '25 – 50%' },
-  ORANGE: { label: 'ORANGE', color: '#f4a623', glow: '#f4a62340', threshold: '50 – 75%' },
-  RED: { label: 'RED', color: '#ef4444', glow: '#ef444440', threshold: '> 75%' },
+  GREEN: { label: 'NOMINAL', color: '#22c55e', glow: '#22c55e40', bg: 'rgba(34,197,94,0.1)' },
+  YELLOW: { label: 'ELEVATED', color: '#eab308', glow: '#eab30840', bg: 'rgba(234,179,8,0.1)' },
+  ORANGE: { label: 'HIGH', color: '#f4a623', glow: '#f4a62340', bg: 'rgba(244,166,35,0.1)' },
+  RED: { label: 'CRITICAL', color: '#ef4444', glow: '#ef444440', bg: 'rgba(239,68,68,0.1)' },
 };
 
 export const FLARE_CLASSES = ['A', 'B', 'C', 'M', 'X'];
-
-const WS_URL = 'ws://localhost:8000/ws'; // swap for real backend
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function gaussian(mean = 0, std = 1) {
@@ -22,14 +20,14 @@ function gaussian(mean = 0, std = 1) {
 
 function clamp(val, min, max) { return Math.min(Math.max(val, min), max); }
 
-function probabilityToAlertLevel(p) {
+function getAlertLevel(p) {
   if (p < 25) return 'GREEN';
   if (p < 50) return 'YELLOW';
   if (p < 75) return 'ORANGE';
   return 'RED';
 }
 
-function probabilityToFlareClass(p) {
+function getFlareClass(p) {
   if (p < 15) return 'A' + (Math.random() * 9 + 1).toFixed(1);
   if (p < 30) return 'B' + (Math.random() * 9 + 1).toFixed(1);
   if (p < 50) return 'C' + (Math.random() * 9 + 1).toFixed(1);
@@ -37,239 +35,196 @@ function probabilityToFlareClass(p) {
   return 'X' + (Math.random() * 5 + 1).toFixed(1);
 }
 
-function generateFluxSoLEXS(baseProbability) {
-  const base = 1e-7 + (baseProbability / 100) * 1e-5;
-  return clamp(base * Math.exp(gaussian(0, 0.3)), 1e-9, 1e-3);
+function generateFluxSoLEXS(prob) {
+  const base = 1e-7 + (prob / 100) * 1e-4;
+  return clamp(base * Math.exp(gaussian(0, 0.4)), 1e-9, 5e-3);
 }
 
-function generateFluxHEL1OS(fluxSoLEXS) {
-  return clamp(fluxSoLEXS * (0.7 + Math.random() * 0.6) * Math.exp(gaussian(0, 0.2)), 1e-9, 1e-3);
+function generateFluxHEL1OS(flux) {
+  return clamp(flux * (0.5 + Math.random()) * Math.exp(gaussian(0, 0.3)), 1e-9, 5e-3);
 }
 
-function buildDataPoint(prevProbability = 30, forceXClass = false) {
-  let probability;
-  if (forceXClass) {
-    probability = 85 + gaussian(0, 3);
-  } else {
-    const spike = Math.random() < 0.05 ? gaussian(20, 8) : 0;
-    probability = clamp(prevProbability + gaussian(0, 4) + spike, 0, 100);
-  }
-  probability = Math.round(clamp(probability, 0, 100) * 10) / 10;
-
-  const fluxSoLEXS = generateFluxSoLEXS(probability);
-  const fluxHEL1OS = generateFluxHEL1OS(fluxSoLEXS);
-  const alertLevel = probabilityToAlertLevel(probability);
-  const flareClass = forceXClass ? 'X' + (Math.random() * 4 + 1).toFixed(1) : probabilityToFlareClass(probability);
-  const confidence = Math.round(clamp(70 + gaussian(0, 8) + (probability > 60 ? 10 : 0), 50, 99));
-
-  return {
-    timestamp: new Date().toISOString(),
-    probability,
-    fluxSoLEXS,
-    fluxHEL1OS,
-    alertLevel,
-    confidence,
-    flareClass,
-    dataStatus: Math.random() < 0.97 ? 'NOMINAL' : 'DEGRADED',
-    systemMode: 'AUTO',
-  };
-}
-
+// ─── Initial State ─────────────────────────────────────────────────────────────
 function buildInitialHistory() {
   const history = [];
-  let prob = 28;
+  let p = 20;
   const now = Date.now();
-  for (let i = 360; i >= 0; i -= 5) {
+  // 6 hours of data = 360 mins, one point per 2 mins = 180 points
+  for (let i = 360; i >= 0; i -= 2) {
     const ts = new Date(now - i * 60 * 1000);
-    const spike = i < 60 && Math.random() < 0.1 ? gaussian(20, 10) : 0;
-    prob = clamp(prob + gaussian(0, 3) + spike, 0, 100);
+    p = clamp(p + gaussian(0, 4), 5, 40);
     history.push({
-      timestamp: ts.toISOString(),
-      probability: Math.round(prob * 10) / 10,
-      fluxSoLEXS: generateFluxSoLEXS(prob),
-      fluxHEL1OS: generateFluxHEL1OS(generateFluxSoLEXS(prob)),
+      time: ts.toISOString(),
+      fluxSoLEXS: generateFluxSoLEXS(p),
+      fluxHEL1OS: generateFluxHEL1OS(generateFluxSoLEXS(p)),
+      isPrediction: false
     });
   }
   return history;
 }
 
-// ─── Initial State ─────────────────────────────────────────────────────────────
-const initialPoint = buildDataPoint(28);
 const initialState = {
-  ...initialPoint,
+  alertLevel: 'GREEN',
+  alertAcked: false,
+  alertActiveSince: Date.now(),
+  nowcast: {
+    probability: 22.4,
+    uncertainty: 2.1,
+    flareClass: 'B4.2',
+    confidence: 94,
+    horizon: '0–30 min'
+  },
+  forecast: {
+    probability: 35.8,
+    uncertainty: 6.4,
+    flareClass: 'C1.5',
+    confidence: 82,
+    horizon: '1–24 hr',
+    onsetMins: 310
+  },
+  fluxSoLEXS: 4e-7,
+  fluxHEL1OS: 3e-7,
+  oodScore: 0.12,
+  compoundEvents: [], // Array of { class, prob, uncert }
+  eventLog: [
+    { id: 1, time: new Date(Date.now() - 86400000).toISOString(), class: 'M2.1', prob: 88, lead: 45, type: 'CONFIRMED' },
+    { id: 2, time: new Date(Date.now() - 40000000).toISOString(), class: 'C4.5', prob: 65, lead: 120, type: 'CONFIRMED' },
+    { id: 3, time: new Date(Date.now() - 15000000).toISOString(), class: 'M1.1', prob: 92, lead: 32, type: 'FALSE ALARM' },
+  ],
   history: buildInitialHistory(),
-  alertLog: [
-    { id: 1, timestamp: new Date(Date.now() - 3600000).toISOString(), level: 'GREEN', message: 'System initialized — nominal conditions' },
-  ],
-  catalogue: [
-    { id: 1, timestamp: new Date(Date.now() - 7200000).toISOString(), flareClass: 'C3.2', confidence: 78, duration: '12 min', peak: '1.2e-6 W/m²' },
-    { id: 2, timestamp: new Date(Date.now() - 14400000).toISOString(), flareClass: 'B7.1', confidence: 65, duration: '8 min', peak: '4.1e-7 W/m²' },
-  ],
-  lastUpdateTime: Date.now(),
-  isMockWS: true,
+  metrics: {
+    tpr: 88,
+    far: 19,
+    latency: 147,
+    statusSoLEXS: 'ACTIVE',
+    statusHEL1OS: 'ACTIVE',
+    dataSource: 'PRIMARY',
+    lastUpdate: new Date().toISOString()
+  }
 };
 
-// ─── Reducer ──────────────────────────────────────────────────────────────────
 function dashboardReducer(state, action) {
   switch (action.type) {
-    case 'UPDATE_DATA': {
-      const newPoint = action.payload;
-      const prevLevel = state.alertLevel;
-      const newLevel = newPoint.alertLevel;
+    case 'TICK': {
+      const { nowcast, forecast, history } = state;
+      const isExtreme = action.payload.forceXClass;
+      
+      const newNowProb = isExtreme ? clamp(gaussian(95, 3), 90, 100) : clamp(nowcast.probability + gaussian(0, 3), 5, 98);
+      const newForeProb = isExtreme ? clamp(gaussian(98, 2), 90, 100) : clamp(forecast.probability + gaussian(0, 5), 5, 99);
+      
+      const newAlertLevel = getAlertLevel(newNowProb);
+      
+      // Update Alert Active Time
+      let newAlertActiveSince = state.alertActiveSince;
+      let newAlertAcked = state.alertAcked;
+      if (newAlertLevel !== state.alertLevel) {
+        newAlertActiveSince = Date.now();
+        newAlertAcked = false; // Reset ack on level change
+      }
 
-      const newHistory = [
-        ...state.history.slice(-432), // keep max 6h at 5s intervals = 432 pts
-        {
-          timestamp: newPoint.timestamp,
-          probability: newPoint.probability,
-          fluxSoLEXS: newPoint.fluxSoLEXS,
-          fluxHEL1OS: newPoint.fluxHEL1OS,
-        },
-      ];
+      // OOD Score Logic
+      let oodScore = clamp(gaussian(0.2, 0.1), 0.0, 0.4);
+      if (Math.random() < 0.05 || isExtreme) oodScore = clamp(gaussian(0.85, 0.1), 0.7, 0.99);
 
-      let newAlertLog = state.alertLog;
-      if (prevLevel !== newLevel) {
-        newAlertLog = [
-          {
-            id: Date.now(),
-            timestamp: newPoint.timestamp,
-            level: newLevel,
-            message: `Alert level changed ${prevLevel} → ${newLevel} (P=${newPoint.probability.toFixed(1)}%, Class ${newPoint.flareClass})`,
-          },
-          ...state.alertLog.slice(0, 99),
+      // Compound Event Logic
+      let compoundEvents = [];
+      if (newNowProb > 60 && Math.random() < 0.2) {
+        compoundEvents = [
+          { class: getFlareClass(newNowProb), prob: newNowProb, uncert: 4.2 },
+          { class: getFlareClass(newNowProb - 20), prob: newNowProb - 20, uncert: 8.5 }
         ];
       }
 
-      let newCatalogue = state.catalogue;
-      if (['M', 'X'].some(c => newPoint.flareClass.startsWith(c)) && Math.random() < 0.1) {
-        newCatalogue = [
-          {
-            id: Date.now(),
-            timestamp: newPoint.timestamp,
-            flareClass: newPoint.flareClass,
-            confidence: newPoint.confidence,
-            duration: `${Math.round(5 + Math.random() * 25)} min`,
-            peak: newPoint.fluxSoLEXS.toExponential(2) + ' W/m²',
-          },
-          ...state.catalogue.slice(0, 49),
-        ];
+      const fluxS = generateFluxSoLEXS(newNowProb);
+      const fluxH = generateFluxHEL1OS(fluxS);
+
+      const newHistory = [...history, {
+        time: new Date().toISOString(),
+        fluxSoLEXS: fluxS,
+        fluxHEL1OS: fluxH,
+        isPrediction: false
+      }].slice(-300); // Keep last 300 points
+
+      // Check if we need to log a new event (e.g. crossing RED threshold)
+      const newEventLog = [...state.eventLog];
+      if (newAlertLevel === 'RED' && state.alertLevel !== 'RED') {
+        newEventLog.unshift({
+          id: Date.now(),
+          time: new Date().toISOString(),
+          class: getFlareClass(newNowProb),
+          prob: Math.round(newNowProb),
+          lead: Math.floor(Math.random() * 120 + 10),
+          type: 'DETECTED'
+        });
       }
 
       return {
         ...state,
-        ...newPoint,
+        alertLevel: newAlertLevel,
+        alertAcked: newAlertAcked,
+        alertActiveSince: newAlertActiveSince,
+        nowcast: {
+          probability: Math.round(newNowProb * 10)/10,
+          uncertainty: Math.round(gaussian(3, 1)*10)/10,
+          flareClass: getFlareClass(newNowProb),
+          confidence: Math.round(clamp(90 - (newNowProb * 0.1) + gaussian(0, 5), 50, 99)),
+          horizon: '0–30 min'
+        },
+        forecast: {
+          probability: Math.round(newForeProb * 10)/10,
+          uncertainty: Math.round(gaussian(8, 2)*10)/10,
+          flareClass: getFlareClass(newForeProb),
+          confidence: Math.round(clamp(75 - (newForeProb * 0.2) + gaussian(0, 5), 40, 99)),
+          horizon: '1–24 hr',
+          onsetMins: Math.max(10, Math.floor(forecast.onsetMins - 0.5 + gaussian(0, 5)))
+        },
+        fluxSoLEXS: fluxS,
+        fluxHEL1OS: fluxH,
+        oodScore,
+        compoundEvents,
         history: newHistory,
-        alertLog: newAlertLog,
-        catalogue: newCatalogue,
-        lastUpdateTime: Date.now(),
+        eventLog: newEventLog.slice(0, 10),
+        metrics: {
+          ...state.metrics,
+          latency: Math.round(gaussian(150, 15)),
+          lastUpdate: new Date().toISOString(),
+          dataSource: Math.random() < 0.95 ? 'PRIMARY' : 'DEGRADED'
+        }
       };
     }
-
-    case 'SIMULATE_X_CLASS': {
-      const xPoint = buildDataPoint(state.probability, true);
-      const newHistory = [
-        ...state.history.slice(-432),
-        { timestamp: xPoint.timestamp, probability: xPoint.probability, fluxSoLEXS: xPoint.fluxSoLEXS, fluxHEL1OS: xPoint.fluxHEL1OS },
-      ];
-      const newCatalogue = [
-        {
-          id: Date.now(),
-          timestamp: xPoint.timestamp,
-          flareClass: xPoint.flareClass,
-          confidence: xPoint.confidence,
-          duration: `${Math.round(10 + Math.random() * 30)} min`,
-          peak: xPoint.fluxSoLEXS.toExponential(2) + ' W/m²',
-        },
-        ...state.catalogue.slice(0, 49),
-      ];
-      const newAlertLog = [
-        {
-          id: Date.now(),
-          timestamp: xPoint.timestamp,
-          level: 'RED',
-          message: `🚨 X-CLASS FLARE SIMULATED — ${xPoint.flareClass} detected (P=${xPoint.probability.toFixed(1)}%)`,
-        },
-        ...state.alertLog.slice(0, 99),
-      ];
-      return {
-        ...state,
-        ...xPoint,
-        alertLevel: 'RED',
-        history: newHistory,
-        catalogue: newCatalogue,
-        alertLog: newAlertLog,
-        lastUpdateTime: Date.now(),
-      };
-    }
-
+    case 'ACKNOWLEDGE_ALERT':
+      return { ...state, alertAcked: true };
     default:
       return state;
   }
 }
 
 // ─── Context ──────────────────────────────────────────────────────────────────
-const DashboardContext = createContext(null);
+const DashboardContext = createContext();
 
 export function DashboardProvider({ children }) {
   const [state, dispatch] = useReducer(dashboardReducer, initialState);
-  const wsRef = useRef(null);
-  const intervalRef = useRef(null);
+  const timerRef = useRef(null);
+
+  const tick = useCallback((forceXClass = false) => {
+    dispatch({ type: 'TICK', payload: { forceXClass } });
+  }, []);
+
+  useEffect(() => {
+    timerRef.current = setInterval(() => tick(false), 2000);
+    return () => clearInterval(timerRef.current);
+  }, [tick]);
 
   const simulateXClass = useCallback(() => {
-    dispatch({ type: 'SIMULATE_X_CLASS' });
+    tick(true);
+  }, [tick]);
+
+  const acknowledgeAlert = useCallback(() => {
+    dispatch({ type: 'ACKNOWLEDGE_ALERT' });
   }, []);
-
-  useEffect(() => {
-    // Try real WebSocket first, fall back to mock
-    let connected = false;
-    try {
-      const ws = new WebSocket(WS_URL);
-      ws.onopen = () => { connected = true; wsRef.current = ws; };
-      ws.onmessage = (e) => {
-        try {
-          const data = JSON.parse(e.data);
-          dispatch({ type: 'UPDATE_DATA', payload: data });
-        } catch {}
-      };
-      ws.onerror = () => { if (!connected) startMock(); };
-      ws.onclose = () => { if (!connected) startMock(); };
-    } catch {
-      startMock();
-    }
-
-    function startMock() {
-      intervalRef.current = setInterval(() => {
-        dispatch((currentAction) => {
-          // We need current probability — use functional update pattern via ref
-          return currentAction;
-        });
-        // Dispatch with a thunk-like approach using a closure ref
-        dispatch({ type: '__TICK__' }); // sentinel, handled below
-      }, 5000);
-    }
-
-    return () => {
-      wsRef.current?.close();
-      clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  // Separate effect to handle the tick using current state
-  const stateRef = useRef(state);
-  stateRef.current = state;
-
-  useEffect(() => {
-    clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
-      const current = stateRef.current;
-      const newPoint = buildDataPoint(current.probability);
-      dispatch({ type: 'UPDATE_DATA', payload: newPoint });
-    }, 5000);
-    return () => clearInterval(intervalRef.current);
-  }, []); // eslint-disable-line
 
   return (
-    <DashboardContext.Provider value={{ state, simulateXClass }}>
+    <DashboardContext.Provider value={{ state, simulateXClass, acknowledgeAlert }}>
       {children}
     </DashboardContext.Provider>
   );
@@ -277,6 +232,6 @@ export function DashboardProvider({ children }) {
 
 export function useDashboard() {
   const ctx = useContext(DashboardContext);
-  if (!ctx) throw new Error('useDashboard must be used within DashboardProvider');
+  if (!ctx) throw new Error('useDashboard must be used within a DashboardProvider');
   return ctx;
 }
