@@ -23,7 +23,7 @@
   --card-radius:    18px;
   --card-blur:      28px;
   --transition:     0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  --card-bg:        linear-gradient(135deg, rgba(14, 42, 90, 0.65) 0%, rgba(8, 22, 48, 0.55) 100%);
+  --card-bg:        linear-gradient(120deg, rgba(14, 42, 90, 0.5) 0%, rgba(56, 189, 248, 0.15) 25%, rgba(8, 22, 48, 0.6) 50%, rgba(244, 166, 35, 0.08) 75%, rgba(14, 42, 90, 0.5) 100%);
   --card-border:    1px solid rgba(255, 255, 255, 0.09);
   --card-shadow:
     0 4px 8px rgba(0,0,0,0.4),
@@ -59,6 +59,14 @@ body {
   transition: transform 0.08s linear, box-shadow var(--transition);
   will-change: transform;
   isolation: isolate;
+  background-size: 300% 300% !important;
+  animation: liquidGlass 12s ease-in-out infinite alternate;
+}
+
+@keyframes liquidGlass {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 /* Holographic glare overlay */
