@@ -40,7 +40,10 @@ function matchIntent(transcript, state) {
   if (t.includes('system mode') || t.includes('mode') || t.includes('data')) {
     return `Data source is ${state.metrics.dataSource}. Inference latency is ${state.metrics.latency} milliseconds.`;
   }
-  return `I heard: "${transcript}". Try asking about probability, alerts, flux, confidence, or X-class flares.`;
+  if (t.includes('analyze') || t.includes('report') || t.includes('summary') || t.includes('everything')) {
+    return `System Analysis Complete. Alert Level is ${state.alertLevel}. Immediate flare probability is ${state.nowcast.probability.toFixed(1)}% for a ${state.nowcast.flareClass} class event. Model confidence is ${state.nowcast.confidence}%. Out of distribution anomaly score is ${(state.oodScore * 100).toFixed(1)}%. SoLEXS flux is currently at ${state.fluxSoLEXS?.toExponential(2)}. All systems operational.`;
+  }
+  return `I heard: "${transcript}". Try asking to "analyze everything", or ask about probability, alerts, flux, confidence, or X-class flares.`;
 }
 
 export function useSpeechRecognition({ speak, muted }) {
