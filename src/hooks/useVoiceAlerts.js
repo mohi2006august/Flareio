@@ -56,5 +56,13 @@ export function useVoiceAlerts(muted) {
     }
   }, [state.alertLevel, state, speak]);
 
+  useEffect(() => {
+    if (muted && SUPPORTED) {
+      window.speechSynthesis.cancel();
+      queueRef.current = [];
+      speakingRef.current = false;
+    }
+  }, [muted]);
+
   return { supported: SUPPORTED, speak };
 }

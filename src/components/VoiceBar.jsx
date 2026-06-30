@@ -46,12 +46,13 @@ export default function VoiceBar() {
           </button>
 
           <button
-            className={`mute-btn ${muted ? 'mute-btn--muted' : ''}`}
+            className={`voice-btn ${muted ? 'mute-btn--muted' : ''}`}
             onClick={() => setMuted(m => !m)}
             title={muted ? 'Unmute voice alerts' : 'Mute voice alerts'}
             id="voice-mute-btn"
           >
             {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+            <span>{muted ? 'Unmuted' : 'Mute'}</span>
           </button>
         </>
       )}
