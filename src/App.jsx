@@ -7,12 +7,9 @@ import { useVoiceAlerts } from './hooks/useVoiceAlerts';
 import Header from './components/Header';
 import AlertBanner from './components/AlertBanner';
 import OodWarning from './components/OodWarning';
-import ProbabilityPanels from './components/ProbabilityPanels';
-import LightCurvePanel from './components/LightCurvePanel';
-import TelemetryCard from './components/TelemetryCard';
-import FlareEventLog from './components/FlareEventLog';
-import CompoundEventPanel from './components/CompoundEventPanel';
-import SpaceBackground from './components/SpaceBackground';
+import Magnetogram from './components/Magnetogram';
+import FlareAlertPanel from './components/FlareAlertPanel';
+import FlareProbabilityChart from './components/FlareProbabilityChart';
 import Preloader from './components/Preloader';
 
 function DashboardGrid() {
@@ -27,27 +24,15 @@ function DashboardGrid() {
       <main className="mc-grid">
         {/* Left Column */}
         <div className="mc-col-left">
-          <ProbabilityPanels />
-          <CompoundEventPanel />
-          <div style={{ flexGrow: 1 }} />
-          <FlareEventLog />
-        </div>
-
-        {/* Center Column */}
-        <div className="mc-col-center">
-          <LightCurvePanel />
+          <Magnetogram />
         </div>
 
         {/* Right Column */}
         <div className="mc-col-right">
-          <TelemetryCard />
+          <FlareAlertPanel />
+          <FlareProbabilityChart />
         </div>
       </main>
-
-      {/* Ambient background sun (moved out of the way) */}
-      <div className="ambient-sun-watermark">
-        <SpaceBackground />
-      </div>
     </div>
   );
 }

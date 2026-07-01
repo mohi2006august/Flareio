@@ -368,17 +368,32 @@ body {
 .mc-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: 320px 1fr 280px;
-  gap: 16px;
-  padding: 16px;
+  grid-template-columns: minmax(500px, 1.2fr) minmax(400px, 0.8fr);
+  gap: 20px;
+  padding: 20px;
   max-width: 1800px;
   margin: 0 auto;
   width: 100%;
+  height: calc(100vh - 120px);
 }
 
-.mc-col-left { display: flex; flex-direction: column; gap: 16px; }
-.mc-col-center { display: flex; flex-direction: column; }
-.mc-col-right { display: flex; flex-direction: column; gap: 16px; }
+.mc-col-left { 
+  display: flex; 
+  flex-direction: column; 
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--card-radius);
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+  position: relative;
+}
+
+.mc-col-right { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 20px; 
+  height: 100%;
+}
 
 /* ── Ambient Background Sun ── */
 .ambient-sun-watermark {
