@@ -161,17 +161,19 @@ function ActiveRegionMarker({ position, label, isHot }) {
 // ─── Magnetogram Sphere ────────────────────────────────────────────────────────
 function MagnetogramSphere({ alertLevel }) {
   const sunRef = useRef();
+  const groupRef = useRef();
   
   useFrame((state) => {
     if (sunRef.current) {
       sunRef.current.time = state.clock.elapsedTime;
-      // Slight rotation
-      sunRef.current.parent.rotation.y = state.clock.elapsedTime * 0.02;
+    }
+    if (groupRef.current) {
+      groupRef.current.rotation.y = state.clock.elapsedTime * 0.02;
     }
   });
 
   return (
-    <group position={[0, 0, 0]}>
+    <group position={[0, 0, 0]} ref={groupRef}>
       <mesh>
         <sphereGeometry args={[14, 128, 128]} />
         <magnetogramMaterial ref={sunRef} />
