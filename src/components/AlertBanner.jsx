@@ -33,9 +33,12 @@ export default function AlertBanner() {
           {cfg.label}
         </div>
         <div className="alert-strip__divider" />
+        <div className="alert-strip__nowcast-label">NOWCAST</div>
         <div className="alert-strip__class">CLASS {nowcast.flareClass[0]}</div>
-        <div className="alert-strip__prob">{nowcast.probability.toFixed(1)}% ± {nowcast.uncertainty}%</div>
-        <div className="alert-strip__horizon">IN NEXT 30 MIN</div>
+        <div className="alert-strip__prob-group">
+          <span className="alert-strip__prob">{nowcast.probability.toFixed(1)}% ± {nowcast.uncertainty}%</span>
+          <span className="alert-strip__horizon-prominent">IN NEXT 30 MIN</span>
+        </div>
         {compoundEvents.length > 0 && (
           <>
             <div className="alert-strip__divider" />

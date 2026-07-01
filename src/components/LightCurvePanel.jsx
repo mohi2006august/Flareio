@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useDashboard } from '../context/DashboardContext';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 
@@ -32,6 +32,14 @@ export default function LightCurvePanel() {
     return new Date(tickItem).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Find the most recent data point to use as NOW marker
+  const nowMarkerTime = useMemo(() => {
+    if (data.length > 0) {
+      return data[data.length - 1].time;
+    }
+    return null;
+  }, [data]);
+
   return (
     <div className="light-curve-panel">
       <div className="light-curve-panel__header">
@@ -59,6 +67,9 @@ export default function LightCurvePanel() {
               <Tooltip content={<CustomTooltip />} />
               <ReferenceLine y={1e-5} stroke="#f4a623" strokeDasharray="4 4" label={{ position: 'insideTopLeft', value: 'M-CLASS THRESHOLD', fill: '#f4a623', fontSize: 9 }} />
               <ReferenceLine y={1e-4} stroke="#ef4444" strokeDasharray="4 4" label={{ position: 'insideTopLeft', value: 'X-CLASS THRESHOLD', fill: '#ef4444', fontSize: 9 }} />
+              {nowMarkerTime && (
+                <ReferenceLine x={nowMarkerTime} stroke="rgba(255,255,255,0.7)" strokeWidth={1.5} strokeDasharray="6 4" label={{ value: 'NOW', position: 'top', fill: 'white', fontSize: 9, fontWeight: 700 }} />
+              )}
               <Line type="monotone" dataKey="fluxSoLEXS" name="Flux" stroke="#38bdf8" strokeWidth={1.5} dot={false} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
@@ -73,6 +84,9 @@ export default function LightCurvePanel() {
               <XAxis dataKey="time" tickFormatter={formatXAxis} stroke="rgba(255,255,255,0.2)" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.4)' }} minTickGap={30} />
               <YAxis scale="log" domain={['auto', 'auto']} tickFormatter={(val) => val.toExponential(0)} stroke="rgba(255,255,255,0.2)" tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.4)' }} width={50} />
               <Tooltip content={<CustomTooltip />} />
+              {nowMarkerTime && (
+                <ReferenceLine x={nowMarkerTime} stroke="rgba(255,255,255,0.7)" strokeWidth={1.5} strokeDasharray="6 4" label={{ value: 'NOW', position: 'top', fill: 'white', fontSize: 9, fontWeight: 700 }} />
+              )}
               <Line type="monotone" dataKey="fluxHEL1OS" name="Flux" stroke="#f4a623" strokeWidth={1.5} dot={false} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
@@ -81,3 +95,4 @@ export default function LightCurvePanel() {
     </div>
   );
 }
+

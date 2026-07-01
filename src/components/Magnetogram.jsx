@@ -126,7 +126,7 @@ const MagnetogramMaterial = shaderMaterial(
 extend({ MagnetogramMaterial });
 
 // ─── Active Region Marker Overlay ──────────────────────────────────────────────
-function ActiveRegionMarker({ position, label, isHot }) {
+function ActiveRegionMarker({ position, label, isHot, magClass, eruptionProb }) {
   return (
     <Html position={position} center>
       <div style={{
@@ -138,20 +138,31 @@ function ActiveRegionMarker({ position, label, isHot }) {
         pointerEvents: 'none'
       }}>
         <div style={{
-          width: '110px',
-          height: '110px',
+          width: '80px',
+          height: '80px',
           border: isHot ? '2px solid rgba(255, 255, 255, 0.9)' : '1px solid rgba(255, 255, 255, 0.5)',
           boxShadow: isHot ? '0 0 15px rgba(255, 255, 255, 0.6)' : 'none',
-          marginBottom: '6px'
+          marginBottom: '4px'
         }} />
         <div style={{
           fontFamily: 'Inter, sans-serif',
-          fontSize: '18px',
+          fontSize: '13px',
           fontWeight: '700',
           color: 'white',
           textShadow: '0 0 6px black'
         }}>
           {label}
+        </div>
+        <div style={{
+          fontFamily: 'JetBrains Mono, monospace',
+          fontSize: '9px',
+          fontWeight: '500',
+          color: isHot ? '#f4a623' : 'rgba(255,255,255,0.6)',
+          textShadow: '0 0 4px black',
+          textAlign: 'center',
+          lineHeight: '1.4'
+        }}>
+          {magClass} · {eruptionProb}%
         </div>
       </div>
     </Html>
@@ -179,11 +190,11 @@ function MagnetogramSphere({ alertLevel }) {
         <magnetogramMaterial ref={sunRef} />
       </mesh>
       
-      {/* Markers placed on the sphere surface */}
+      {/* Markers placed on the sphere surface with metadata */}
       <group>
-        <ActiveRegionMarker position={[-4, 6, 12.5]} label="AR4087" isHot={true} />
-        <ActiveRegionMarker position={[8, 1, 11]} label="AR4081" isHot={false} />
-        <ActiveRegionMarker position={[-2, -6, 12.5]} label="AR4085" isHot={true} />
+        <ActiveRegionMarker position={[-4, 6, 12.5]} label="AR4087" isHot={true} magClass="βγδ" eruptionProb={72} />
+        <ActiveRegionMarker position={[8, 1, 11]} label="AR4081" isHot={false} magClass="βγ" eruptionProb={28} />
+        <ActiveRegionMarker position={[-2, -6, 12.5]} label="AR4085" isHot={true} magClass="βγδ" eruptionProb={61} />
       </group>
     </group>
   );
@@ -238,6 +249,17 @@ function MagnetogramOverlay() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', marginBottom: 'auto' }}>
         <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>E90</div>
         <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>W90</div>
+      </div>
+      
+      {/* Caption */}
+      <div style={{
+        fontFamily: 'Inter, sans-serif',
+        fontSize: '10px',
+        color: 'rgba(255,255,255,0.45)',
+        textAlign: 'center',
+        letterSpacing: '0.3px'
+      }}>
+        Active regions currently monitored for eruption potential
       </div>
     </div>
   );

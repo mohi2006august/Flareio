@@ -82,6 +82,12 @@ const initialState = {
     horizon: '1–24 hr',
     onsetMins: 310
   },
+  forecast24h: {
+    x: { prob: 8, uncert: 4.2 },
+    m: { prob: 18, uncert: 6.4 },
+    c: { prob: 42, uncert: 5.1 },
+    quietSun: { prob: 65, uncert: 3.5 }
+  },
   fluxSoLEXS: 4e-7,
   fluxHEL1OS: 3e-7,
   oodScore: 0.12,
@@ -163,6 +169,12 @@ function dashboardReducer(state, action) {
         }
       }
 
+      // Derive 24h forecast probabilities from the nowcast probability
+      const xProb24 = clamp(newNowProb * 0.35 + gaussian(0, 3), 2, 60);
+      const mProb24 = clamp(newNowProb * 0.65 + gaussian(0, 4), 5, 85);
+      const cProb24 = clamp(newNowProb * 0.9 + gaussian(0, 3), 15, 95);
+      const quietProb = clamp(100 - mProb24 + gaussian(0, 5), 10, 90);
+
       return {
         ...state,
         alertLevel: newAlertLevel,
@@ -170,18 +182,24 @@ function dashboardReducer(state, action) {
         alertActiveSince: newAlertActiveSince,
         nowcast: {
           probability: Math.round(newNowProb * 10)/10,
-          uncertainty: Math.round(gaussian(3, 1)*10)/10,
+          uncertainty: Math.round(clamp(Math.abs(gaussian(3, 1)), 0.5, 8)*10)/10,
           flareClass: getFlareClass(newNowProb),
           confidence: Math.round(clamp(90 - (newNowProb * 0.1) + gaussian(0, 5), 50, 99)),
           horizon: '0–30 min'
         },
         forecast: {
           probability: Math.round(newForeProb * 10)/10,
-          uncertainty: Math.round(gaussian(8, 2)*10)/10,
+          uncertainty: Math.round(clamp(Math.abs(gaussian(8, 2)), 1, 15)*10)/10,
           flareClass: getFlareClass(newForeProb),
           confidence: Math.round(clamp(75 - (newForeProb * 0.2) + gaussian(0, 5), 40, 99)),
           horizon: '1–24 hr',
           onsetMins: Math.max(10, Math.floor(forecast.onsetMins - 0.5 + gaussian(0, 5)))
+        },
+        forecast24h: {
+          x: { prob: Math.round(xProb24 * 10)/10, uncert: Math.round(clamp(Math.abs(gaussian(4, 1.5)), 1, 12)*10)/10 },
+          m: { prob: Math.round(mProb24 * 10)/10, uncert: Math.round(clamp(Math.abs(gaussian(6, 2)), 1.5, 14)*10)/10 },
+          c: { prob: Math.round(cProb24 * 10)/10, uncert: Math.round(clamp(Math.abs(gaussian(5, 1)), 1, 10)*10)/10 },
+          quietSun: { prob: Math.round(quietProb * 10)/10, uncert: Math.round(clamp(Math.abs(gaussian(3, 1)), 0.5, 8)*10)/10 }
         },
         fluxSoLEXS: fluxS,
         fluxHEL1OS: fluxH,

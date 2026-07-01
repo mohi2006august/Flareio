@@ -1,13 +1,14 @@
 import React from 'react';
-import { useDashboard } from '../context/DashboardContext';
+import { useDashboard, ALERT_LEVELS } from '../context/DashboardContext';
 
 export default function FlareAlertPanel() {
   const { state } = useDashboard();
-  
-  // Example dynamic values based on context
-  const probM = 65;
-  const probX = 25;
-  const isHighRisk = probM > 50 || probX > 20;
+  const { alertLevel, forecast24h, nowcast } = state;
+  const cfg = ALERT_LEVELS[alertLevel];
+
+  // Determine risk label from alertLevel
+  const riskLabel = alertLevel === 'GREEN' ? 'LOW' : alertLevel === 'YELLOW' ? 'MODERATE' : alertLevel === 'ORANGE' ? 'HIGH' : 'CRITICAL';
+  const isElevated = alertLevel !== 'GREEN';
 
   return (
     <div style={{
@@ -17,95 +18,118 @@ export default function FlareAlertPanel() {
       padding: '20px',
       display: 'flex',
       flexDirection: 'column',
-      height: '35%',
       backdropFilter: 'blur(10px)'
     }}>
       <div style={{
         fontFamily: 'Orbitron, sans-serif',
         fontWeight: '700',
-        fontSize: '14px',
+        fontSize: '13px',
         letterSpacing: '1px',
         color: 'white',
-        marginBottom: '20px'
+        marginBottom: '16px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
       }}>
-        FLARE ALERT LEVEL <span style={{opacity: 0.5, marginLeft: '4px'}}>ⓘ</span>
+        <span>24-HOUR FORECAST</span>
+        <span style={{
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '10px',
+          fontWeight: '500',
+          color: 'rgba(255,255,255,0.5)',
+          letterSpacing: '0.5px'
+        }}>HORIZON: 1–24 HR</span>
       </div>
 
       <div style={{
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-around',
-        flex: 1
+        gap: '20px',
+        alignItems: 'stretch'
       }}>
         
-        {/* Left: Alert Box */}
+        {/* Left: Alert Level Box */}
         <div style={{
-          background: isHighRisk ? 'rgba(255, 0, 0, 0.1)' : 'rgba(0, 255, 0, 0.1)',
-          border: isHighRisk ? '1px solid rgba(255, 0, 0, 0.4)' : '1px solid rgba(0, 255, 0, 0.4)',
+          background: `${cfg.bg}`,
+          border: `1px solid ${cfg.color}40`,
           borderRadius: '8px',
-          padding: '16px 24px',
+          padding: '16px 20px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          boxShadow: isHighRisk ? '0 0 20px rgba(255, 0, 0, 0.2) inset' : 'none',
-          minWidth: '200px'
+          justifyContent: 'center',
+          minWidth: '140px',
+          boxShadow: isElevated ? `0 0 20px ${cfg.color}20 inset` : 'none'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            {isHighRisk && (
-              <span style={{ color: '#ff4444', fontSize: '24px' }}>⚠️</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            {isElevated && (
+              <span style={{ color: cfg.color, fontSize: '20px' }}>⚠️</span>
             )}
             <span style={{
               fontFamily: 'Orbitron, sans-serif',
-              fontSize: '28px',
+              fontSize: '24px',
               fontWeight: '900',
-              color: 'white'
+              color: cfg.color
             }}>
-              {isHighRisk ? 'HIGH' : 'LOW'}
+              {riskLabel}
             </span>
           </div>
           <div style={{
             fontFamily: 'Inter, sans-serif',
-            fontSize: '12px',
+            fontSize: '10px',
             fontWeight: '500',
-            color: 'rgba(255,255,255,0.7)'
+            color: 'rgba(255,255,255,0.6)',
+            textAlign: 'center',
+            lineHeight: '1.4'
           }}>
-            RISK OF M-CLASS FLARE
+            OVERALL RISK LEVEL
           </div>
         </div>
 
-        {/* Right: Gauge and Probabilities */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          {/* Simple SVG Half-donut Gauge */}
-          <div style={{ position: 'relative', width: '160px', height: '80px', overflow: 'hidden' }}>
-            <svg viewBox="0 0 200 100" width="160" height="80">
-              <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="30" />
-              {/* Green section */}
-              <path d="M 20 100 A 80 80 0 0 1 70 36" fill="none" stroke="#22c55e" strokeWidth="30" />
-              {/* Yellow section */}
-              <path d="M 70 36 A 80 80 0 0 1 130 36" fill="none" stroke="#eab308" strokeWidth="30" />
-              {/* Red section */}
-              <path d="M 130 36 A 80 80 0 0 1 180 100" fill="none" stroke="#ef4444" strokeWidth="30" />
-              
-              {/* Needle (Rotate based on risk: roughly 130deg for high risk) */}
-              <g transform="translate(100, 100) rotate(45)">
-                <circle cx="0" cy="0" r="8" fill="white" />
-                <path d="M -4 0 L 0 -70 L 4 0 Z" fill="white" />
-              </g>
-            </svg>
-          </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '12px', width: '100%' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'Inter', fontSize: '11px' }}>
-              <span style={{ color: 'rgba(255,255,255,0.7)' }}>Prob. M-Class: {probM}%</span>
-              <span style={{ color: '#f4a623' }}>75%</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'Inter', fontSize: '11px' }}>
-              <span style={{ color: 'rgba(255,255,255,0.7)' }}>Prob. X-Class: {probX}%</span>
-              <span style={{ color: '#ef4444' }}>25%</span>
-            </div>
-          </div>
+        {/* Right: Per-Class Probabilities with Uncertainty */}
+        <div style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          gap: '10px'
+        }}>
+          <ProbRow label="X-Class" prob={forecast24h.x.prob} uncert={forecast24h.x.uncert} color="#ef4444" />
+          <ProbRow label="M-Class" prob={forecast24h.m.prob} uncert={forecast24h.m.uncert} color="#f4a623" />
+          <ProbRow label="C-Class" prob={forecast24h.c.prob} uncert={forecast24h.c.uncert} color="#eab308" />
+          <ProbRow label="Quiet Sun" prob={forecast24h.quietSun.prob} uncert={forecast24h.quietSun.uncert} color="#22c55e" />
         </div>
 
+      </div>
+    </div>
+  );
+}
+
+function ProbRow({ label, prob, uncert, color }) {
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      fontFamily: 'Inter, sans-serif',
+      fontSize: '13px',
+      fontWeight: '600',
+      gap: '8px'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: '80px' }}>
+        <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: color, flexShrink: 0 }} />
+        <span style={{ color: 'rgba(255,255,255,0.8)' }}>{label}</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+        <span style={{ color, fontWeight: '700', fontSize: '15px', fontFamily: 'JetBrains Mono, monospace' }}>
+          {prob.toFixed(1)}%
+        </span>
+        <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', fontFamily: 'JetBrains Mono, monospace' }}>
+          ±{uncert.toFixed(1)}%
+        </span>
+      </div>
+      {/* Mini bar */}
+      <div style={{ width: '60px', height: '4px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
+        <div style={{ width: `${Math.min(prob, 100)}%`, height: '100%', background: color, borderRadius: '2px', transition: 'width 0.5s ease' }} />
       </div>
     </div>
   );

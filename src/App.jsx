@@ -12,6 +12,7 @@ import FlareAlertPanel from './components/FlareAlertPanel';
 import FlareProbabilityChart from './components/FlareProbabilityChart';
 import LightCurvePanel from './components/LightCurvePanel';
 import Preloader from './components/Preloader';
+import FlareEventLog from './components/FlareEventLog';
 
 function DashboardGrid() {
   const { state } = useDashboard();
@@ -34,6 +35,7 @@ function DashboardGrid() {
         <div className="mc-col-right">
           <FlareAlertPanel />
           <FlareProbabilityChart />
+          <FlareEventLog />
         </div>
       </main>
     </div>
