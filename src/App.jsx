@@ -10,6 +10,7 @@ import OodWarning from './components/OodWarning';
 import Magnetogram from './components/Magnetogram';
 import FlareAlertPanel from './components/FlareAlertPanel';
 import FlareProbabilityChart from './components/FlareProbabilityChart';
+import LightCurvePanel from './components/LightCurvePanel';
 import Preloader from './components/Preloader';
 
 function DashboardGrid() {
@@ -24,7 +25,10 @@ function DashboardGrid() {
       <main className="mc-grid">
         {/* Left Column */}
         <div className="mc-col-left">
-          <Magnetogram />
+          <div className="magnetogram-container">
+            <Magnetogram />
+          </div>
+          <LightCurvePanel />
         </div>
 
         {/* Right Column */}

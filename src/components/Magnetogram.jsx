@@ -10,7 +10,7 @@ import { extend } from '@react-three/fiber';
 // ─── Custom Shaders ───────────────────────────────────────────────────────────
 // We update the SunMaterial to look more like the magnetogram screenshot
 const MagnetogramMaterial = shaderMaterial(
-  { time: 0, colorPrimary: new THREE.Color('#333344'), colorSecondary: new THREE.Color('#9999aa') },
+  { time: 0, colorPrimary: new THREE.Color('#777788'), colorSecondary: new THREE.Color('#d0d0d8') },
   // Vertex Shader
   `
     varying vec2 vUv;
