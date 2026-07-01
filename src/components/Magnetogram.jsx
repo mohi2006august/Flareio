@@ -242,14 +242,6 @@ function MagnetogramOverlay() {
         </div>
       </div>
       
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>N90</div>
-      </div>
-      
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', marginBottom: 'auto' }}>
-        <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>E90</div>
-        <div style={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>W90</div>
-      </div>
       
       {/* Caption */}
       <div style={{
