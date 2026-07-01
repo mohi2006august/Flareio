@@ -378,22 +378,19 @@ body {
 }
 
 .magnetogram-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.6;
+  flex: 1;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--card-radius);
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  overflow: hidden;
+  position: relative;
 }
 
 .mc-col-left { 
   display: flex; 
   flex-direction: column; 
-  gap: 20px;
   height: 100%;
-  z-index: 10;
 }
 
 .mc-col-right { 

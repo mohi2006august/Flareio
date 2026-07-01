@@ -173,7 +173,7 @@ function MagnetogramSphere({ alertLevel }) {
   });
 
   return (
-    <group position={[-8, 0, 0]} ref={groupRef}>
+    <group position={[0, 0, 0]} ref={groupRef}>
       <mesh>
         <sphereGeometry args={[14, 128, 128]} />
         <magnetogramMaterial ref={sunRef} />
@@ -251,7 +251,7 @@ export default function Magnetogram() {
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <MagnetogramOverlay />
       <Canvas
-        camera={{ position: [0, 0, 23], fov: 60 }}
+        camera={{ position: [0, 0, 16], fov: 60 }}
         gl={{ antialias: true, alpha: true }}
         style={{ background: 'transparent' }}
       >
