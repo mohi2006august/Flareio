@@ -173,7 +173,7 @@ function MagnetogramSphere({ alertLevel }) {
   });
 
   return (
-    <group position={[0, 0, 0]} ref={groupRef}>
+    <group position={[-8, 0, 0]} ref={groupRef}>
       <mesh>
         <sphereGeometry args={[14, 128, 128]} />
         <magnetogramMaterial ref={sunRef} />

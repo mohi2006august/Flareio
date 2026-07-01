@@ -22,12 +22,13 @@ function DashboardGrid() {
       <OodWarning />
       <AlertBanner />
       
+      <div className="magnetogram-container">
+        <Magnetogram />
+      </div>
+
       <main className="mc-grid">
         {/* Left Column */}
         <div className="mc-col-left">
-          <div className="magnetogram-container">
-            <Magnetogram />
-          </div>
           <LightCurvePanel />
         </div>
 
