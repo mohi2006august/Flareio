@@ -138,18 +138,18 @@ function ActiveRegionMarker({ position, label, isHot }) {
         pointerEvents: 'none'
       }}>
         <div style={{
-          width: '60px',
-          height: '60px',
-          border: isHot ? '2px solid rgba(255, 255, 255, 0.8)' : '1px solid rgba(255, 255, 255, 0.4)',
-          boxShadow: isHot ? '0 0 10px rgba(255, 255, 255, 0.5)' : 'none',
-          marginBottom: '4px'
+          width: '110px',
+          height: '110px',
+          border: isHot ? '2px solid rgba(255, 255, 255, 0.9)' : '1px solid rgba(255, 255, 255, 0.5)',
+          boxShadow: isHot ? '0 0 15px rgba(255, 255, 255, 0.6)' : 'none',
+          marginBottom: '6px'
         }} />
         <div style={{
           fontFamily: 'Inter, sans-serif',
-          fontSize: '14px',
-          fontWeight: '600',
+          fontSize: '18px',
+          fontWeight: '700',
           color: 'white',
-          textShadow: '0 0 4px black'
+          textShadow: '0 0 6px black'
         }}>
           {label}
         </div>
@@ -251,7 +251,7 @@ export default function Magnetogram() {
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <MagnetogramOverlay />
       <Canvas
-        camera={{ position: [0, 0, 30], fov: 60 }}
+        camera={{ position: [0, 0, 23], fov: 60 }}
         gl={{ antialias: true, alpha: true }}
         style={{ background: 'transparent' }}
       >
