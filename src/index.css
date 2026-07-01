@@ -378,7 +378,7 @@ body {
 }
 
 .magnetogram-container {
-  flex: 1;
+  flex: 1.5;
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: var(--card-radius);
   background: var(--card-bg);
@@ -390,6 +390,7 @@ body {
 .mc-col-left { 
   display: flex; 
   flex-direction: column; 
+  gap: 20px;
   height: 100%;
 }
 

@@ -27,6 +27,7 @@ function DashboardGrid() {
           <div className="magnetogram-container">
             <Magnetogram />
           </div>
+          <LightCurvePanel />
         </div>
 
         {/* Right Column */}
@@ -35,10 +36,6 @@ function DashboardGrid() {
           <FlareProbabilityChart />
         </div>
       </main>
-
-      <div style={{ padding: '0 20px 20px', maxWidth: '1800px', margin: '0 auto', height: '400px' }}>
-        <LightCurvePanel />
-      </div>
     </div>
   );
 }

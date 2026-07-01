@@ -251,7 +251,7 @@ export default function Magnetogram() {
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <MagnetogramOverlay />
       <Canvas
-        camera={{ position: [0, 0, 16], fov: 60 }}
+        camera={{ position: [0, 0, 23], fov: 60 }}
         gl={{ antialias: true, alpha: true }}
         style={{ background: 'transparent' }}
       >
